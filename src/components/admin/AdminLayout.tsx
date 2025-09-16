@@ -13,7 +13,6 @@ import {
   Users,
   Clock,
   PlusCircle,
-  Settings, // Adicionado
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -29,8 +28,7 @@ const AdminLayout: React.FC = () => {
     { name: "Novo Agendamento", path: "/admin/new-appointment", icon: PlusCircle },
     { name: "Serviços", path: "/admin/services", icon: ClipboardList },
     { name: "Funcionários", path: "/admin/employees", icon: Users },
-    { name: "Horários", path: "/admin/operating-hours", icon: Clock },
-    { name: "Configurações", path: "/admin/settings", icon: Settings }, // Adicionado
+    { name: "Horários de Funcionamento", path: "/admin/operating-hours", icon: Clock },
   ];
 
   const handleLogout = async () => {

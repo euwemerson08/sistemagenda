@@ -10,7 +10,6 @@ import { showError, showSuccess, showLoading, dismissToast } from "@/utils/toast
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useSession } from "@/components/SessionContextProvider";
 
 interface Service {
   id: string;
@@ -23,15 +22,13 @@ interface Service {
 const CalendarPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { clientName, clientWhatsapp, clientCpf, selectedServices, totalAmount, selectedEmployeeId } = (location.state || {}) as {
+  const { clientName, clientWhatsapp, selectedServices, totalAmount, selectedEmployeeId } = (location.state || {}) as {
     clientName?: string;
     clientWhatsapp?: string;
-    clientCpf?: string;
     selectedServices?: Service[];
     totalAmount?: number;
     selectedEmployeeId?: string;
   };
-  const { user } = useSession();
 
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
@@ -74,49 +71,38 @@ const CalendarPage: React.FC = () => {
     }
   }, [date, selectedEmployeeId, totalDuration]);
 
-  const handleProceedToPayment = async () => {
+  const handleSchedule = async () => {
     if (!date || !selectedTime || !selectedServices || !selectedEmployeeId) {
-      showError("Por favor, selecione uma data e hora para continuar.");
+      showError("Por favor, preencha todos os campos para agendar.");
       return;
     }
 
-    if (!user || !user.email) {
-      showError("Não foi possível carregar seus dados de usuário. Por favor, tente fazer login novamente.");
-      return;
-    }
-
-    const loadingToast = showLoading("Preparando pagamento...");
+    const loadingToast = showLoading("Confirmando agendamento...");
     setIsSubmitting(true);
 
     const [hours, minutes] = selectedTime.split(':').map(Number);
     const appointmentDate = new Date(date);
     appointmentDate.setHours(hours, minutes, 0, 0);
 
-    const appointmentDetails = {
+    const appointmentData = {
       client_name: clientName,
       client_whatsapp: clientWhatsapp,
-      client_email: user.email,
-      client_cpf: clientCpf,
       appointment_date: appointmentDate.toISOString(),
       services: selectedServices.map(s => ({ id: s.id, name: s.name, price: s.price, duration: s.duration })),
       total_amount: totalAmount,
       employee_id: selectedEmployeeId,
     };
 
-    try {
-      const { data, error } = await supabase.functions.invoke('create-payment-preference', {
-        body: { appointmentDetails },
-      });
+    const { error } = await supabase.from('appointments').insert([appointmentData]);
+    
+    dismissToast(loadingToast);
+    setIsSubmitting(false);
 
-      if (error) throw error;
-
-      dismissToast(loadingToast);
-      navigate("/payment", { state: { appointmentDetails, preferenceId: data.preferenceId } });
-
-    } catch (error) {
-      dismissToast(loadingToast);
-      showError("Erro ao iniciar pagamento: " + error.message);
-      setIsSubmitting(false);
+    if (error) {
+      showError("Erro ao criar agendamento: " + error.message);
+    } else {
+      showSuccess(`Agendamento para ${format(date, "dd/MM/yyyy")} às ${selectedTime} confirmado!`);
+      navigate("/");
     }
   };
 
@@ -184,8 +170,8 @@ const CalendarPage: React.FC = () => {
               <span className="text-xl font-bold">Total:</span>
               <span className="text-xl font-bold text-primary">R$ {totalAmount?.toFixed(2) || "0.00"}</span>
             </div>
-            <Button onClick={handleProceedToPayment} disabled={isSubmitting || !selectedTime} className="w-full mt-6 text-lg py-3">
-              {isSubmitting ? "Processando..." : "Ir para o Pagamento"}
+            <Button onClick={handleSchedule} disabled={isSubmitting || !selectedTime} className="w-full mt-6 text-lg py-3">
+              {isSubmitting ? "Confirmando..." : "Confirmar Agendamento"}
             </Button>
           </CardContent>
         </Card>
