@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
@@ -40,14 +39,23 @@ export default function OperatingHoursManagementPage() {
     fetchOperatingHours();
   }, []);
 
+  const formatTimeForInput = (time: string | null): string | null => {
+    if (!time) return null;
+    // Extracts "HH:mm" from "HH:mm:ss" or other formats from the database
+    return time.slice(0, 5);
+  };
+
   const fetchOperatingHours = async () => {
     setLoading(true);
     const { data, error } = await supabase.from("operating_hours").select("*");
     if (error) {
       toast.error("Erro ao carregar horários de funcionamento: " + error.message);
     } else {
-      // Ensure all days are present, even if not in DB yet
-      const fetchedHoursMap = new Map(data.map(oh => [oh.day_of_week, oh]));
+      const fetchedHoursMap = new Map(data.map(oh => [oh.day_of_week, {
+        ...oh,
+        open_time: formatTimeForInput(oh.open_time),
+        close_time: formatTimeForInput(oh.close_time),
+      }]));
       const fullOperatingHours = daysOfWeekOrder.map(day => {
         const existing = fetchedHoursMap.get(day);
         return existing || { day_of_week: day, open_time: null, close_time: null, is_closed: true };
@@ -82,7 +90,6 @@ export default function OperatingHoursManagementPage() {
       }
     }
 
-    // Remove id before upsert, as we are using day_of_week for conflict resolution
     const { id, ...upsertData } = dataToSave;
 
     const { error } = await supabase
@@ -93,7 +100,7 @@ export default function OperatingHoursManagementPage() {
       toast.error("Erro ao salvar horário: " + error.message);
     } else {
       toast.success(`Horário para ${dayNames[hour.day_of_week]} salvo com sucesso!`);
-      fetchOperatingHours(); // Re-fetch to get any new IDs and ensure consistency
+      fetchOperatingHours();
     }
   };
 
