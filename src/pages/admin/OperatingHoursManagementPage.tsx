@@ -70,7 +70,7 @@ export default function OperatingHoursManagementPage() {
   };
 
   const handleSaveOperatingHour = async (hour: OperatingHour) => {
-    const { id, ...dataToSave } = hour;
+    const dataToSave = { ...hour };
 
     if (dataToSave.is_closed) {
       dataToSave.open_time = null;
@@ -82,24 +82,18 @@ export default function OperatingHoursManagementPage() {
       }
     }
 
-    if (id) {
-      // Update existing
-      const { error } = await supabase.from("operating_hours").update(dataToSave).eq("id", id);
-      if (error) {
-        toast.error("Erro ao atualizar horário: " + error.message);
-      } else {
-        toast.success(`Horário para ${dayNames[hour.day_of_week]} atualizado com sucesso!`);
-        fetchOperatingHours(); // Re-fetch to ensure data consistency
-      }
+    // Remove id before upsert, as we are using day_of_week for conflict resolution
+    const { id, ...upsertData } = dataToSave;
+
+    const { error } = await supabase
+      .from("operating_hours")
+      .upsert(upsertData, { onConflict: "day_of_week" });
+
+    if (error) {
+      toast.error("Erro ao salvar horário: " + error.message);
     } else {
-      // Insert new
-      const { error } = await supabase.from("operating_hours").insert([dataToSave]);
-      if (error) {
-        toast.error("Erro ao adicionar horário: " + error.message);
-      } else {
-        toast.success(`Horário para ${dayNames[hour.day_of_week]} adicionado com sucesso!`);
-        fetchOperatingHours(); // Re-fetch to get the new ID
-      }
+      toast.success(`Horário para ${dayNames[hour.day_of_week]} salvo com sucesso!`);
+      fetchOperatingHours(); // Re-fetch to get any new IDs and ensure consistency
     }
   };
 
