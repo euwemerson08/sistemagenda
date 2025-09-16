@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom"; // Importar Link
 import { showError } from "@/utils/toast"; // Importar showError do utils/toast
 
 const Index = () => {
@@ -60,6 +60,11 @@ const Index = () => {
         <Button onClick={handleContinue} size="lg" className="text-lg px-8 py-4 w-full">
           Selecionar Serviços
         </Button>
+        <div className="mt-4">
+          <Link to="/admin" className="text-sm text-blue-500 hover:underline">
+            Ir para o Painel de Administração
+          </Link>
+        </div>
       </div>
       <MadeWithDyad />
     </div>
