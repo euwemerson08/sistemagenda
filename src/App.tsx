@@ -18,6 +18,7 @@ import { SessionContextProvider, useSession } from "./components/SessionContextP
 import { Toaster } from "sonner";
 import React from "react";
 import CustomerProtectedRoute from "./components/CustomerProtectedRoute";
+import UpdatePasswordPage from "./pages/UpdatePasswordPage";
 
 // Componente de rota protegida para Admin
 const AdminProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -42,6 +43,7 @@ function App() {
           {/* Public Routes */}
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/update-password" element={<UpdatePasswordPage />} />
 
           {/* Customer Protected Routes */}
           <Route path="/services" element={<CustomerProtectedRoute><ServiceSelectionPage /></CustomerProtectedRoute>} />
