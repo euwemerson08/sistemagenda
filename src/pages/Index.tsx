@@ -1,68 +1,60 @@
 "use client";
 
 import { MadeWithDyad } from "@/components/made-with-dyad";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom"; // Importar Link
-import { showError } from "@/utils/toast"; // Importar showError do utils/toast
+import { Auth } from "@supabase/auth-ui-react";
+import { ThemeSupa } from "@supabase/auth-ui-shared";
+import { supabase } from "@/integrations/supabase/client";
+import { useSession } from "@/components/SessionContextProvider";
+import { Navigate, Link } from "react-router-dom";
 
 const Index = () => {
-  const [clientName, setClientName] = useState<string>("");
-  const [clientWhatsapp, setClientWhatsapp] = useState<string>("");
-  const navigate = useNavigate();
+  const { session, isLoading } = useSession();
 
-  const handleContinue = () => {
-    if (!clientName.trim()) {
-      showError("Por favor, insira seu nome para continuar.");
-      return;
-    }
-    if (!clientWhatsapp.trim()) {
-      showError("Por favor, insira seu número de WhatsApp para continuar.");
-      return;
-    }
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center">Carregando...</div>;
+  }
 
-    navigate("/services", { state: { clientName, clientWhatsapp } });
-  };
+  if (session) {
+    return <Navigate to="/services" replace />;
+  }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-900 text-foreground p-4">
-      <div className="text-center p-6 bg-card rounded-lg shadow-lg max-w-md w-full">
-        <h1 className="text-4xl font-bold mb-4">Bem-vindo ao Seu Aplicativo</h1>
-        <p className="text-xl text-muted-foreground mb-8">
-          Comece a construir seu projeto incrível aqui!
-        </p>
-
-        <div className="space-y-4 mb-8">
-          <div>
-            <Label htmlFor="clientName" className="text-left block mb-2">Nome</Label>
-            <Input
-              id="clientName"
-              placeholder="Seu nome"
-              value={clientName}
-              onChange={(e) => setClientName(e.target.value)}
-              className="w-full"
-            />
-          </div>
-          <div>
-            <Label htmlFor="clientWhatsapp" className="text-left block mb-2">WhatsApp</Label>
-            <Input
-              id="clientWhatsapp"
-              placeholder="(XX) XXXXX-XXXX"
-              value={clientWhatsapp}
-              onChange={(e) => setClientWhatsapp(e.target.value)}
-              className="w-full"
-            />
-          </div>
-        </div>
-
-        <Button onClick={handleContinue} size="lg" className="text-lg px-8 py-4 w-full">
-          Selecionar Serviços
-        </Button>
-        <div className="mt-4">
-          <Link to="/admin" className="text-sm text-blue-500 hover:underline">
-            Ir para o Painel de Administração
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-900 p-4">
+      <div className="w-full max-w-md p-8 bg-card rounded-lg shadow-lg">
+        <h1 className="text-3xl font-bold text-center mb-2">Bem-vindo!</h1>
+        <p className="text-center text-muted-foreground mb-6">Faça login ou crie sua conta para agendar.</p>
+        <Auth
+          supabaseClient={supabase}
+          appearance={{ theme: ThemeSupa }}
+          theme="light"
+          providers={[]}
+          localization={{
+            variables: {
+              sign_in: {
+                email_label: 'Seu email',
+                password_label: 'Sua senha',
+                button_label: 'Entrar',
+                social_provider_text: 'Entrar com {{provider}}',
+                link_text: 'Já tem uma conta? Entre',
+              },
+              sign_up: {
+                email_label: 'Seu email',
+                password_label: 'Crie uma senha',
+                button_label: 'Criar conta',
+                link_text: 'Não tem uma conta? Crie uma',
+              },
+              forgotten_password: {
+                email_label: 'Seu email',
+                password_label: 'Sua senha',
+                button_label: 'Enviar instruções',
+                link_text: 'Esqueceu sua senha?',
+              },
+            },
+          }}
+        />
+        <div className="mt-6 text-center">
+          <Link to="/login" className="text-sm text-blue-500 hover:underline">
+            Acesso do Administrador
           </Link>
         </div>
       </div>

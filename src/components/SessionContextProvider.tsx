@@ -3,7 +3,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
 
 interface SessionContextType {
   session: Session | null;
@@ -17,36 +16,26 @@ export const SessionContextProvider: React.FC<{ children: React.ReactNode }> = (
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const navigate = useNavigate();
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, currentSession) => {
-        setSession(currentSession);
-        setUser(currentSession?.user || null);
-        setIsLoading(false);
+    const getSession = async () => {
+      const { data: { session: initialSession } } = await supabase.auth.getSession();
+      setSession(initialSession);
+      setUser(initialSession?.user ?? null);
+      setIsLoading(false);
+    };
 
-        if (event === 'SIGNED_OUT') {
-          navigate('/login');
-        } else if (currentSession && location.pathname === '/login') {
-          navigate('/admin'); // Redirect authenticated users from login page
-        }
+    getSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, currentSession) => {
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
-      setSession(initialSession);
-      setUser(initialSession?.user || null);
-      setIsLoading(false);
-      if (!initialSession && location.pathname.startsWith('/admin')) {
-        navigate('/login');
-      } else if (initialSession && location.pathname === '/login') {
-        navigate('/admin');
-      }
-    });
-
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, []);
 
   return (
     <SessionContext.Provider value={{ session, user, isLoading }}>
