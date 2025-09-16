@@ -1,202 +1,224 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
+import { createClient } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import ServiceForm from "@/components/admin/ServiceForm";
-import { supabase } from "@/integrations/supabase/client";
-import { showError, showSuccess } from "@/utils/toast";
-import { Trash2, Edit } from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { toast } from "sonner";
+import { Pencil, Trash } from "lucide-react";
 
 interface Service {
   id: string;
   name: string;
-  description?: string;
+  description: string | null;
   price: number;
+  duration: number | null; // Adicionando a propriedade duration
 }
 
-const ServicesManagementPage: React.FC = () => {
+export default function ServicesManagementPage() {
+  const supabase = createClient();
   const [services, setServices] = useState<Service[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [editingService, setEditingService] = useState<Service | undefined>(undefined);
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [newService, setNewService] = useState<Omit<Service, "id" | "created_at">>({
+    name: "",
+    description: "",
+    price: 0,
+    duration: null, // Inicializando duration
+  });
+  const [editingService, setEditingService] = useState<Service | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchServices();
   }, []);
 
   const fetchServices = async () => {
-    setLoading(true);
-    const { data, error } = await supabase.from("services").select("*").order("created_at", { ascending: false });
+    const { data, error } = await supabase.from("services").select("*");
     if (error) {
-      showError("Erro ao carregar serviços: " + error.message);
+      toast.error("Erro ao carregar serviços: " + error.message);
     } else {
-      setServices(data || []);
+      setServices(data);
     }
-    setLoading(false);
   };
 
-  const handleAddService = async (values: Omit<Service, "id">) => {
-    setIsSubmitting(true);
-    const { data, error } = await supabase.from("services").insert(values).select();
-    if (error) {
-      showError("Erro ao adicionar serviço: " + error.message);
-    } else {
-      showSuccess("Serviço adicionado com sucesso!");
-      setServices((prev) => [data[0], ...prev]);
-      setIsFormOpen(false);
-    }
-    setIsSubmitting(false);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setNewService((prev) => ({
+      ...prev,
+      [name]: name === "price" || name === "duration" ? parseFloat(value) : value,
+    }));
   };
 
-  const handleUpdateService = async (values: Omit<Service, "id">) => {
-    if (!editingService?.id) return;
-    setIsSubmitting(true);
-    const { data, error } = await supabase
-      .from("services")
-      .update(values)
-      .eq("id", editingService.id)
-      .select();
-    if (error) {
-      showError("Erro ao atualizar serviço: " + error.message);
-    } else {
-      showSuccess("Serviço atualizado com sucesso!");
-      setServices((prev) =>
-        prev.map((s) => (s.id === editingService.id ? data[0] : s))
-      );
-      setIsFormOpen(false);
-      setEditingService(undefined);
+  const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    if (editingService) {
+      setEditingService((prev) => ({
+        ...prev!,
+        [name]: name === "price" || name === "duration" ? parseFloat(value) : value,
+      }));
     }
-    setIsSubmitting(false);
+  };
+
+  const handleSaveService = async () => {
+    if (editingService) {
+      const { id, ...updates } = editingService;
+      const { error } = await supabase.from("services").update(updates).eq("id", id);
+      if (error) {
+        toast.error("Erro ao atualizar serviço: " + error.message);
+      } else {
+        toast.success("Serviço atualizado com sucesso!");
+        fetchServices();
+        setEditingService(null);
+        setIsDialogOpen(false);
+      }
+    } else {
+      const { error } = await supabase.from("services").insert([newService]);
+      if (error) {
+        toast.error("Erro ao adicionar serviço: " + error.message);
+      } else {
+        toast.success("Serviço adicionado com sucesso!");
+        fetchServices();
+        setNewService({ name: "", description: "", price: 0, duration: null });
+        setIsDialogOpen(false);
+      }
+    }
   };
 
   const handleDeleteService = async (id: string) => {
     const { error } = await supabase.from("services").delete().eq("id", id);
     if (error) {
-      showError("Erro ao excluir serviço: " + error.message);
+      toast.error("Erro ao deletar serviço: " + error.message);
     } else {
-      showSuccess("Serviço excluído com sucesso!");
-      setServices((prev) => prev.filter((s) => s.id !== id));
+      toast.success("Serviço deletado com sucesso!");
+      fetchServices();
     }
   };
 
   const openEditDialog = (service: Service) => {
     setEditingService(service);
-    setIsFormOpen(true);
+    setIsDialogOpen(true);
   };
 
-  const handleFormSubmit = (values: Omit<Service, "id">) => {
-    if (editingService) {
-      handleUpdateService(values);
-    } else {
-      handleAddService(values);
-    }
+  const openAddDialog = () => {
+    setEditingService(null);
+    setNewService({ name: "", description: "", price: 0, duration: null });
+    setIsDialogOpen(true);
   };
 
   return (
-    <div className="p-4">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Gerenciar Serviços</h2>
-        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => setEditingService(undefined)}>Adicionar Serviço</Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>{editingService ? "Editar Serviço" : "Adicionar Novo Serviço"}</DialogTitle>
-            </DialogHeader>
-            <ServiceForm
-              initialData={editingService}
-              onSubmit={handleFormSubmit}
-              isSubmitting={isSubmitting}
-            />
-          </DialogContent>
-        </Dialog>
-      </div>
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Gerenciamento de Serviços</h1>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de Serviços</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <p>Carregando serviços...</p>
-          ) : services.length === 0 ? (
-            <p>Nenhum serviço encontrado. Adicione um novo serviço.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Descrição</TableHead>
-                    <TableHead>Preço</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {services.map((service) => (
-                    <TableRow key={service.id}>
-                      <TableCell className="font-medium">{service.name}</TableCell>
-                      <TableCell>{service.description || "N/A"}</TableCell>
-                      <TableCell>R$ {service.price.toFixed(2)}</TableCell>
-                      <TableCell className="text-right flex gap-2 justify-end">
-                        <Button variant="outline" size="icon" onClick={() => openEditDialog(service)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="destructive" size="icon">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Esta ação não pode ser desfeita. Isso excluirá permanentemente o serviço "{service.name}".
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDeleteService(service.id)}>
-                                Excluir
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogTrigger asChild>
+          <Button onClick={openAddDialog} className="mb-4">
+            Adicionar Novo Serviço
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>{editingService ? "Editar Serviço" : "Adicionar Novo Serviço"}</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                Nome
+              </Label>
+              <Input
+                id="name"
+                name="name"
+                value={editingService ? editingService.name : newService.name}
+                onChange={editingService ? handleEditInputChange : handleInputChange}
+                className="col-span-3"
+              />
             </div>
-          )}
-        </CardContent>
-      </Card>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="description" className="text-right">
+                Descrição
+              </Label>
+              <Input
+                id="description"
+                name="description"
+                value={editingService ? editingService.description || "" : newService.description || ""}
+                onChange={editingService ? handleEditInputChange : handleInputChange}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="price" className="text-right">
+                Preço
+              </Label>
+              <Input
+                id="price"
+                name="price"
+                type="number"
+                value={editingService ? editingService.price : newService.price}
+                onChange={editingService ? handleEditInputChange : handleInputChange}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="duration" className="text-right">
+                Duração (minutos)
+              </Label>
+              <Input
+                id="duration"
+                name="duration"
+                type="number"
+                value={editingService ? editingService.duration || "" : newService.duration || ""}
+                onChange={editingService ? handleEditInputChange : handleInputChange}
+                className="col-span-3"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancelar</Button>
+            </DialogClose>
+            <Button onClick={handleSaveService}>Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Nome</TableHead>
+            <TableHead>Descrição</TableHead>
+            <TableHead>Preço</TableHead>
+            <TableHead>Duração (minutos)</TableHead>
+            <TableHead className="text-right">Ações</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {services.map((service) => (
+            <TableRow key={service.id}>
+              <TableCell className="font-medium">{service.name}</TableCell>
+              <TableCell>{service.description}</TableCell>
+              <TableCell>R$ {service.price.toFixed(2)}</TableCell>
+              <TableCell>{service.duration ? `${service.duration} min` : "N/A"}</TableCell>
+              <TableCell className="text-right">
+                <Button variant="ghost" size="icon" onClick={() => openEditDialog(service)}>
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={() => handleDeleteService(service.id)}>
+                  <Trash className="h-4 w-4" />
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
-};
-
-export default ServicesManagementPage;
+}
