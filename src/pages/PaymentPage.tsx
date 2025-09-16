@@ -13,7 +13,8 @@ const PaymentPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { appointmentDetails, preferenceId } = location.state || {};
-  const { totalAmount, services } = appointmentDetails || {};
+  // FIX: Correctly destructure 'total_amount' and rename it to 'totalAmount'
+  const { total_amount: totalAmount, services } = appointmentDetails || {};
 
   const [publicKey, setPublicKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -107,6 +108,11 @@ const PaymentPage: React.FC = () => {
     );
   };
 
+  // Add a guard to prevent rendering with incomplete data before redirect
+  if (!appointmentDetails) {
+    return <div className="min-h-screen flex items-center justify-center">Carregando...</div>;
+  }
+
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8 max-w-md">
       <Card>
@@ -121,7 +127,7 @@ const PaymentPage: React.FC = () => {
             <div className="mb-6">
               <h3 className="text-lg font-semibold mb-2">Resumo do Pedido</h3>
               <ul className="space-y-1 text-muted-foreground">
-                {services.map((service: any) => (
+                {services && services.map((service: any) => (
                   <li key={service.id} className="flex justify-between">
                     <span>{service.name}</span>
                     <span>R$ {service.price.toFixed(2)}</span>
@@ -131,7 +137,8 @@ const PaymentPage: React.FC = () => {
               <Separator className="my-3" />
               <div className="flex justify-between font-bold text-lg">
                 <span>Total</span>
-                <span>R$ {totalAmount.toFixed(2)}</span>
+                {/* Add a check for totalAmount to be safe */}
+                <span>R$ {totalAmount ? totalAmount.toFixed(2) : '0.00'}</span>
               </div>
             </div>
           )}
