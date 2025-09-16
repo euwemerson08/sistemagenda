@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "@/components/ui/use-toast"; // Importar toast para validação
+import { showError } from "@/utils/toast"; // Importar showError do utils/toast
 
 const Index = () => {
   const [clientName, setClientName] = useState<string>("");
@@ -15,19 +15,11 @@ const Index = () => {
 
   const handleContinue = () => {
     if (!clientName.trim()) {
-      toast({
-        title: "Nome é obrigatório",
-        description: "Por favor, insira seu nome para continuar.",
-        variant: "destructive",
-      });
+      showError("Por favor, insira seu nome para continuar.");
       return;
     }
     if (!clientWhatsapp.trim()) {
-      toast({
-        title: "WhatsApp é obrigatório",
-        description: "Por favor, insira seu número de WhatsApp para continuar.",
-        variant: "destructive",
-      });
+      showError("Por favor, insira seu número de WhatsApp para continuar.");
       return;
     }
 

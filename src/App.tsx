@@ -3,8 +3,8 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import ServiceSelectionPage from "./pages/ServiceSelectionPage";
-import CalendarPage from "./pages/CalendarPage"; // Importar a nova página de calendário
-import { Toaster } from "@/components/ui/toaster";
+import CalendarPage from "./pages/CalendarPage";
+import { Toaster } from "sonner"; // Importar Toaster do sonner
 
 function App() {
   return (
@@ -12,9 +12,9 @@ function App() {
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/services" element={<ServiceSelectionPage />} />
-        <Route path="/calendar" element={<CalendarPage />} /> {/* Nova rota para o calendário */}
+        <Route path="/calendar" element={<CalendarPage />} />
       </Routes>
-      <Toaster />
+      <Toaster /> {/* Usar o Toaster do sonner */}
     </Router>
   );
 }

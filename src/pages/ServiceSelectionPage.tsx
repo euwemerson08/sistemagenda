@@ -3,9 +3,9 @@
 import React, { useState, useMemo } from "react";
 import ServiceCard from "@/components/ServiceCard";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/use-toast";
+import { showError } from "@/utils/toast"; // Importar showError do utils/toast
 import { Separator } from "@/components/ui/separator";
-import { Link, useLocation, useNavigate } from "react-router-dom"; // Importar useNavigate
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 
 interface Service {
@@ -26,7 +26,7 @@ const mockServices: Service[] = [
 
 const ServiceSelectionPage: React.FC = () => {
   const location = useLocation();
-  const navigate = useNavigate(); // Inicializar useNavigate
+  const navigate = useNavigate();
   const { clientName, clientWhatsapp } = (location.state || {}) as { clientName?: string; clientWhatsapp?: string };
 
   const [selectedServiceIds, setSelectedServiceIds] = useState<Set<string>>(new Set());
@@ -64,14 +64,9 @@ const ServiceSelectionPage: React.FC = () => {
 
   const handleContinue = () => {
     if (selectedServices.length === 0) {
-      toast({
-        title: "Nenhum serviço selecionado",
-        description: "Por favor, selecione pelo menos um serviço para continuar.",
-        variant: "destructive",
-      });
+      showError("Por favor, selecione pelo menos um serviço para continuar.");
       return;
     }
-    // Navegar para a página do calendário, passando os dados
     navigate("/calendar", {
       state: { clientName, clientWhatsapp, selectedServices, totalAmount },
     });

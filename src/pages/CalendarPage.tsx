@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { showError, showSuccess } from "@/utils/toast"; // Importar showError e showSuccess do utils/toast
 
 interface Service {
   id: string;
@@ -24,19 +25,32 @@ const CalendarPage: React.FC = () => {
   };
 
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const [selectedTime, setSelectedTime] = useState<string | null>(null);
+
+  const timeSlots = [
+    "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
+    "13:00", "13:30", "14:00", "14:30", "15:00", "15:30",
+    "16:00", "16:30", "17:00", "17:30", "18:00", "18:30",
+  ];
 
   const handleSchedule = () => {
     if (!date) {
-      // Aqui você pode adicionar um toast de erro se nenhuma data for selecionada
-      console.error("Por favor, selecione uma data.");
+      showError("Por favor, selecione uma data.");
       return;
     }
+    if (!selectedTime) {
+      showError("Por favor, selecione um horário.");
+      return;
+    }
+
     // Lógica para agendar o horário com a data selecionada, serviços e informações do cliente
-    console.log("Agendamento para:", date);
+    console.log("Agendamento para:", date.toLocaleDateString(), "às", selectedTime);
     console.log("Cliente:", clientName, "WhatsApp:", clientWhatsapp);
     console.log("Serviços:", selectedServices);
     console.log("Total:", totalAmount);
-    // Exibir uma mensagem de sucesso ou navegar para uma página de confirmação
+
+    showSuccess(`Agendamento para ${date.toLocaleDateString()} às ${selectedTime} confirmado!`);
+    // Você pode adicionar uma navegação para uma página de confirmação aqui
   };
 
   return (
@@ -70,6 +84,22 @@ const CalendarPage: React.FC = () => {
             <CardTitle className="text-xl font-semibold mb-4">Detalhes do Agendamento</CardTitle>
           </CardHeader>
           <CardContent>
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-3">Selecione o Horário</h3>
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-48 overflow-y-auto pr-2">
+                {timeSlots.map((time) => (
+                  <Button
+                    key={time}
+                    variant={selectedTime === time ? "default" : "outline"}
+                    onClick={() => setSelectedTime(time)}
+                    className="text-sm"
+                  >
+                    {time}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            <Separator className="my-4" />
             {selectedServices && selectedServices.length > 0 ? (
               <ul className="space-y-2 mb-4">
                 {selectedServices.map((service) => (
