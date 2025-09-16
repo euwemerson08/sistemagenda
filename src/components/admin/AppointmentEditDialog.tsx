@@ -7,7 +7,6 @@ import * as z from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -24,9 +23,15 @@ const appointmentFormSchema = z.object({
   client_whatsapp: z.string().min(1, "O WhatsApp do cliente é obrigatório."),
   appointment_date: z.date({ required_error: "A data do agendamento é obrigatória." }),
   status: z.string(),
+  employee_id: z.string().nullable(),
 });
 
 type AppointmentFormValues = z.infer<typeof appointmentFormSchema>;
+
+interface Employee {
+  id: string;
+  name: string;
+}
 
 interface Appointment {
   id: string;
@@ -34,10 +39,12 @@ interface Appointment {
   client_whatsapp: string;
   appointment_date: string;
   status: string;
+  employee_id: string | null;
 }
 
 interface AppointmentEditDialogProps {
   appointment: Appointment | null;
+  allEmployees: Employee[];
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   onAppointmentUpdate: () => void;
@@ -45,6 +52,7 @@ interface AppointmentEditDialogProps {
 
 export const AppointmentEditDialog: React.FC<AppointmentEditDialogProps> = ({
   appointment,
+  allEmployees,
   isOpen,
   onOpenChange,
   onAppointmentUpdate,
@@ -60,6 +68,7 @@ export const AppointmentEditDialog: React.FC<AppointmentEditDialogProps> = ({
         client_whatsapp: appointment.client_whatsapp,
         appointment_date: new Date(appointment.appointment_date),
         status: appointment.status,
+        employee_id: appointment.employee_id,
       });
     }
   }, [appointment, form]);
@@ -153,6 +162,29 @@ export const AppointmentEditDialog: React.FC<AppointmentEditDialogProps> = ({
                       />
                     </PopoverContent>
                   </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="employee_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Profissional</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value || ""}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o profissional" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="">Nenhum</SelectItem>
+                      {allEmployees.map(employee => (
+                        <SelectItem key={employee.id} value={employee.id}>{employee.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

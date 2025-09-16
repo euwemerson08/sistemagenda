@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -8,12 +8,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { showError, showSuccess } from "@/utils/toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Service {
   id: string;
   name: string;
   description: string | null;
   price: number;
+}
+
+interface Employee {
+  id: string;
+  name: string;
 }
 
 const CalendarPage: React.FC = () => {
@@ -29,6 +35,35 @@ const CalendarPage: React.FC = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [availableEmployees, setAvailableEmployees] = useState<Employee[]>([]);
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
+  const [isLoadingEmployees, setIsLoadingEmployees] = useState(true);
+
+  useEffect(() => {
+    const fetchAvailableEmployees = async () => {
+      if (!selectedServices || selectedServices.length === 0) {
+        setAvailableEmployees([]);
+        setIsLoadingEmployees(false);
+        return;
+      }
+
+      setIsLoadingEmployees(true);
+      const selectedServiceIds = selectedServices.map(s => s.id);
+
+      const { data, error } = await supabase.rpc('get_employees_for_services', {
+        p_service_ids: selectedServiceIds,
+      });
+
+      if (error) {
+        showError("Erro ao buscar profissionais: " + error.message);
+      } else {
+        setAvailableEmployees(data || []);
+      }
+      setIsLoadingEmployees(false);
+    };
+
+    fetchAvailableEmployees();
+  }, [selectedServices]);
 
   const timeSlots = [
     "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
@@ -43,6 +78,10 @@ const CalendarPage: React.FC = () => {
     }
     if (!selectedTime) {
       showError("Por favor, selecione um horário.");
+      return;
+    }
+    if (!selectedEmployeeId) {
+      showError("Por favor, selecione um profissional.");
       return;
     }
     if (!selectedServices || selectedServices.length === 0) {
@@ -62,6 +101,7 @@ const CalendarPage: React.FC = () => {
       appointment_date: appointmentDate.toISOString(),
       services: selectedServices.map(s => ({ id: s.id, name: s.name, price: s.price })),
       total_amount: totalAmount,
+      employee_id: selectedEmployeeId,
     };
 
     const { error } = await supabase.from('appointments').insert([appointmentData]);
@@ -73,7 +113,7 @@ const CalendarPage: React.FC = () => {
       console.error(error);
     } else {
       showSuccess(`Agendamento para ${date.toLocaleDateString()} às ${selectedTime} confirmado!`);
-      navigate("/"); // Redirect to home page after successful scheduling
+      navigate("/");
     }
   };
 
@@ -91,15 +131,38 @@ const CalendarPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <Card className="p-4">
           <CardHeader>
-            <CardTitle className="text-xl font-semibold mb-4">Selecione a Data</CardTitle>
+            <CardTitle className="text-xl font-semibold mb-4">Selecione a Data e Profissional</CardTitle>
           </CardHeader>
-          <CardContent className="flex justify-center">
-            <Calendar
-              mode="single"
-              selected={date}
-              onSelect={setDate}
-              className="rounded-md border shadow"
-            />
+          <CardContent>
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-3">Profissional</h3>
+              <Select onValueChange={setSelectedEmployeeId} value={selectedEmployeeId || ""}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Escolha um profissional" />
+                </SelectTrigger>
+                <SelectContent>
+                  {isLoadingEmployees ? (
+                    <SelectItem value="loading" disabled>Carregando...</SelectItem>
+                  ) : availableEmployees.length > 0 ? (
+                    availableEmployees.map((employee) => (
+                      <SelectItem key={employee.id} value={employee.id}>
+                        {employee.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="no-one" disabled>Nenhum profissional disponível</SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex justify-center">
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={setDate}
+                className="rounded-md border shadow"
+              />
+            </div>
           </CardContent>
         </Card>
 

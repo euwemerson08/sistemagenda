@@ -24,6 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { format, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -37,6 +38,11 @@ interface Service {
   price: number;
 }
 
+interface Employee {
+  id: string;
+  name: string;
+}
+
 interface Appointment {
   id: string;
   client_name: string;
@@ -46,33 +52,41 @@ interface Appointment {
   total_amount: number;
   created_at: string;
   status: string;
+  employee_id: string | null;
+  employees: { name: string } | null;
 }
 
 export default function AppointmentsPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [allEmployees, setAllEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [clientNameFilter, setClientNameFilter] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [selectedEmployeeFilter, setSelectedEmployeeFilter] = useState<string>("");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [appointmentToDelete, setAppointmentToDelete] = useState<Appointment | null>(null);
 
   useEffect(() => {
-    fetchAppointments();
+    fetchData();
   }, []);
 
-  const fetchAppointments = async () => {
+  const fetchData = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    const appointmentsPromise = supabase
       .from("appointments")
-      .select("*")
+      .select("*, employees(name)")
       .order("appointment_date", { ascending: false });
+    const employeesPromise = supabase.from("employees").select("id, name");
 
-    if (error) {
-      toast.error("Erro ao carregar agendamentos: " + error.message);
+    const [{ data: appointmentsData, error: appointmentsError }, { data: employeesData, error: employeesError }] = await Promise.all([appointmentsPromise, employeesPromise]);
+
+    if (appointmentsError || employeesError) {
+      toast.error(appointmentsError?.message || employeesError?.message || "Erro ao carregar dados.");
     } else {
-      setAppointments(data as Appointment[]);
+      setAppointments(appointmentsData as Appointment[]);
+      setAllEmployees(employeesData || []);
     }
     setLoading(false);
   };
@@ -94,7 +108,7 @@ export default function AppointmentsPage() {
       toast.error("Erro ao excluir agendamento: " + error.message);
     } else {
       toast.success("Agendamento excluído com sucesso!");
-      fetchAppointments();
+      fetchData();
     }
     setIsDeleteDialogOpen(false);
     setAppointmentToDelete(null);
@@ -108,13 +122,17 @@ export default function AppointmentsPage() {
       const dateMatch = selectedDate
         ? isSameDay(new Date(appointment.appointment_date), selectedDate)
         : true;
-      return nameMatch && dateMatch;
+      const employeeMatch = selectedEmployeeFilter
+        ? appointment.employee_id === selectedEmployeeFilter
+        : true;
+      return nameMatch && dateMatch && employeeMatch;
     });
-  }, [appointments, clientNameFilter, selectedDate]);
+  }, [appointments, clientNameFilter, selectedDate, selectedEmployeeFilter]);
 
   const clearFilters = () => {
     setClientNameFilter("");
     setSelectedDate(undefined);
+    setSelectedEmployeeFilter("");
   };
 
   const getStatusVariant = (status: string) => {
@@ -156,7 +174,18 @@ export default function AppointmentsPage() {
             <Calendar mode="single" selected={selectedDate} onSelect={setSelectedDate} initialFocus />
           </PopoverContent>
         </Popover>
-        {(clientNameFilter || selectedDate) && (
+        <Select value={selectedEmployeeFilter} onValueChange={setSelectedEmployeeFilter}>
+          <SelectTrigger className="w-[280px]">
+            <SelectValue placeholder="Filtrar por profissional" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">Todos os Profissionais</SelectItem>
+            {allEmployees.map(emp => (
+              <SelectItem key={emp.id} value={emp.id}>{emp.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {(clientNameFilter || selectedDate || selectedEmployeeFilter) && (
           <Button variant="ghost" onClick={clearFilters}>
             <X className="mr-2 h-4 w-4" />
             Limpar Filtros
@@ -170,6 +199,7 @@ export default function AppointmentsPage() {
             <TableRow>
               <TableHead>Cliente</TableHead>
               <TableHead>Data e Hora</TableHead>
+              <TableHead>Profissional</TableHead>
               <TableHead>Serviços</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Valor Total</TableHead>
@@ -179,7 +209,7 @@ export default function AppointmentsPage() {
           <TableBody>
             {filteredAppointments.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">
+                <TableCell colSpan={7} className="h-24 text-center">
                   Nenhum agendamento encontrado.
                 </TableCell>
               </TableRow>
@@ -193,6 +223,7 @@ export default function AppointmentsPage() {
                   <TableCell>
                     {format(new Date(appointment.appointment_date), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                   </TableCell>
+                  <TableCell>{appointment.employees?.name || 'N/A'}</TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
                       {appointment.services.map((service) => (
@@ -233,9 +264,10 @@ export default function AppointmentsPage() {
 
       <AppointmentEditDialog
         appointment={selectedAppointment}
+        allEmployees={allEmployees}
         isOpen={isEditDialogOpen}
         onOpenChange={setIsEditDialogOpen}
-        onAppointmentUpdate={fetchAppointments}
+        onAppointmentUpdate={fetchData}
       />
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
