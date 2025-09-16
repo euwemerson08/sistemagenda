@@ -15,6 +15,7 @@ const AdminLayout: React.FC = () => {
 
   const navLinks = [
     { name: "Dashboard", path: "/admin" },
+    { name: "Agendamentos", path: "/admin/appointments" },
     { name: "Serviços", path: "/admin/services" },
     { name: "Horários de Funcionamento", path: "/admin/operating-hours" },
   ];

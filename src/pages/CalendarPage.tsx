@@ -3,10 +3,11 @@
 import React, { useState } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { showError, showSuccess } from "@/utils/toast"; // Importar showError e showSuccess do utils/toast
+import { showError, showSuccess } from "@/utils/toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Service {
   id: string;
@@ -17,6 +18,7 @@ interface Service {
 
 const CalendarPage: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { clientName, clientWhatsapp, selectedServices, totalAmount } = (location.state || {}) as {
     clientName?: string;
     clientWhatsapp?: string;
@@ -26,6 +28,7 @@ const CalendarPage: React.FC = () => {
 
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const timeSlots = [
     "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
@@ -33,7 +36,7 @@ const CalendarPage: React.FC = () => {
     "16:00", "16:30", "17:00", "17:30", "18:00", "18:30",
   ];
 
-  const handleSchedule = () => {
+  const handleSchedule = async () => {
     if (!date) {
       showError("Por favor, selecione uma data.");
       return;
@@ -42,15 +45,36 @@ const CalendarPage: React.FC = () => {
       showError("Por favor, selecione um horário.");
       return;
     }
+    if (!selectedServices || selectedServices.length === 0) {
+      showError("Ocorreu um erro, nenhum serviço selecionado.");
+      return;
+    }
 
-    // Lógica para agendar o horário com a data selecionada, serviços e informações do cliente
-    console.log("Agendamento para:", date.toLocaleDateString(), "às", selectedTime);
-    console.log("Cliente:", clientName, "WhatsApp:", clientWhatsapp);
-    console.log("Serviços:", selectedServices);
-    console.log("Total:", totalAmount);
+    setIsSubmitting(true);
 
-    showSuccess(`Agendamento para ${date.toLocaleDateString()} às ${selectedTime} confirmado!`);
-    // Você pode adicionar uma navegação para uma página de confirmação aqui
+    const [hours, minutes] = selectedTime.split(':').map(Number);
+    const appointmentDate = new Date(date);
+    appointmentDate.setHours(hours, minutes, 0, 0);
+
+    const appointmentData = {
+      client_name: clientName,
+      client_whatsapp: clientWhatsapp,
+      appointment_date: appointmentDate.toISOString(),
+      services: selectedServices.map(s => ({ id: s.id, name: s.name, price: s.price })),
+      total_amount: totalAmount,
+    };
+
+    const { error } = await supabase.from('appointments').insert([appointmentData]);
+
+    setIsSubmitting(false);
+
+    if (error) {
+      showError("Erro ao criar agendamento: " + error.message);
+      console.error(error);
+    } else {
+      showSuccess(`Agendamento para ${date.toLocaleDateString()} às ${selectedTime} confirmado!`);
+      navigate("/"); // Redirect to home page after successful scheduling
+    }
   };
 
   return (
@@ -117,8 +141,8 @@ const CalendarPage: React.FC = () => {
               <span className="text-xl font-bold">Total:</span>
               <span className="text-xl font-bold text-primary">R$ {totalAmount?.toFixed(2) || "0.00"}</span>
             </div>
-            <Button onClick={handleSchedule} className="w-full mt-6 text-lg py-3">
-              Confirmar Agendamento
+            <Button onClick={handleSchedule} disabled={isSubmitting} className="w-full mt-6 text-lg py-3">
+              {isSubmitting ? "Confirmando..." : "Confirmar Agendamento"}
             </Button>
           </CardContent>
         </Card>

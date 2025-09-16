@@ -8,8 +8,9 @@ import AdminLayout from "./components/admin/AdminLayout";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import ServicesManagementPage from "./pages/admin/ServicesManagementPage";
 import OperatingHoursManagementPage from "./pages/admin/OperatingHoursManagementPage";
-import Login from "./pages/Login"; // Importar a página de Login
-import { SessionContextProvider, useSession } from "./components/SessionContextProvider"; // Importar SessionContextProvider e useSession
+import AppointmentsPage from "./pages/admin/AppointmentsPage"; // Importar a nova página
+import Login from "./pages/Login";
+import { SessionContextProvider, useSession } from "./components/SessionContextProvider";
 import { Toaster } from "sonner";
 import React from "react";
 
@@ -36,11 +37,12 @@ function App() {
           <Route path="/" element={<Index />} />
           <Route path="/services" element={<ServiceSelectionPage />} />
           <Route path="/calendar" element={<CalendarPage />} />
-          <Route path="/login" element={<Login />} /> {/* Rota para a página de login */}
+          <Route path="/login" element={<Login />} />
           <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
             <Route index element={<AdminDashboardPage />} />
             <Route path="services" element={<ServicesManagementPage />} />
             <Route path="operating-hours" element={<OperatingHoursManagementPage />} />
+            <Route path="appointments" element={<AppointmentsPage />} /> {/* Adicionar a nova rota */}
           </Route>
         </Routes>
         <Toaster />
