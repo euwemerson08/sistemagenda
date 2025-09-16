@@ -17,7 +17,6 @@ const AdminLayout: React.FC = () => {
     { name: "Dashboard", path: "/admin" },
     { name: "Agendamentos", path: "/admin/appointments" },
     { name: "Serviços", path: "/admin/services" },
-    { name: "Funcionários", path: "/admin/employees" },
     { name: "Horários de Funcionamento", path: "/admin/operating-hours" },
   ];
 
