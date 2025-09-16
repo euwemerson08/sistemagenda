@@ -4,7 +4,15 @@ import React from "react";
 import { Link, Outlet } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, LogOut } from "lucide-react";
+import {
+  Menu,
+  LogOut,
+  LayoutDashboard,
+  CalendarDays,
+  ClipboardList,
+  Users,
+  Clock,
+} from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,11 +22,11 @@ const AdminLayout: React.FC = () => {
   const isMobile = useIsMobile();
 
   const navLinks = [
-    { name: "Dashboard", path: "/admin" },
-    { name: "Agendamentos", path: "/admin/appointments" },
-    { name: "Serviços", path: "/admin/services" },
-    { name: "Funcionários", path: "/admin/employees" },
-    { name: "Horários de Funcionamento", path: "/admin/operating-hours" },
+    { name: "Dashboard", path: "/admin", icon: LayoutDashboard },
+    { name: "Agendamentos", path: "/admin/appointments", icon: CalendarDays },
+    { name: "Serviços", path: "/admin/services", icon: ClipboardList },
+    { name: "Funcionários", path: "/admin/employees", icon: Users },
+    { name: "Horários de Funcionamento", path: "/admin/operating-hours", icon: Clock },
   ];
 
   const handleLogout = async () => {
@@ -34,11 +42,17 @@ const AdminLayout: React.FC = () => {
     <div className="flex flex-col h-full p-4">
       <h2 className="text-2xl font-bold mb-6 text-primary">Painel Admin</h2>
       <nav className="flex flex-col space-y-2">
-        {navLinks.map((link) => (
-          <Button key={link.name} variant="ghost" className="justify-start" asChild>
-            <Link to={link.path}>{link.name}</Link>
-          </Button>
-        ))}
+        {navLinks.map((link) => {
+          const Icon = link.icon;
+          return (
+            <Button key={link.name} variant="ghost" className="justify-start" asChild>
+              <Link to={link.path}>
+                <Icon className="mr-2 h-4 w-4" />
+                {link.name}
+              </Link>
+            </Button>
+          );
+        })}
       </nav>
       <Separator className="my-4" />
       <Button variant="outline" className="mt-auto" onClick={handleLogout}>
