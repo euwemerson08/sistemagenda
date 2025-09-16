@@ -21,6 +21,7 @@ import {
 const signUpSchema = z.object({
   name: z.string().min(1, "O nome é obrigatório."),
   whatsapp: z.string().min(10, "O WhatsApp parece inválido."),
+  cpf: z.string().min(11, "O CPF deve ter pelo menos 11 dígitos.").max(14, "O CPF parece inválido."),
   email: z.string().email("Email inválido."),
   password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres."),
 });
@@ -35,7 +36,7 @@ export function CustomerAuthForm() {
 
   const signUpForm = useForm<z.infer<typeof signUpSchema>>({
     resolver: zodResolver(signUpSchema),
-    defaultValues: { name: "", whatsapp: "", email: "", password: "" },
+    defaultValues: { name: "", whatsapp: "", cpf: "", email: "", password: "" },
   });
 
   const signInForm = useForm<z.infer<typeof signInSchema>>({
@@ -52,6 +53,7 @@ export function CustomerAuthForm() {
         data: {
           name: values.name,
           whatsapp: values.whatsapp,
+          cpf: values.cpf.replace(/\D/g, ''),
         },
       },
     });
@@ -140,6 +142,19 @@ export function CustomerAuthForm() {
                   <FormLabel>WhatsApp</FormLabel>
                   <FormControl>
                     <Input placeholder="(XX) XXXXX-XXXX" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={signUpForm.control}
+              name="cpf"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>CPF</FormLabel>
+                  <FormControl>
+                    <Input placeholder="000.000.000-00" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

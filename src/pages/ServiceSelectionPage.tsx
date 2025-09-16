@@ -29,6 +29,7 @@ interface Employee {
 interface Profile {
   name: string | null;
   whatsapp: string | null;
+  cpf: string | null;
 }
 
 const ServiceSelectionPage: React.FC = () => {
@@ -51,7 +52,7 @@ const ServiceSelectionPage: React.FC = () => {
 
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
-        .select("name, whatsapp")
+        .select("name, whatsapp, cpf")
         .eq("id", user.id)
         .single();
 
@@ -132,12 +133,12 @@ const ServiceSelectionPage: React.FC = () => {
       showError("Por favor, selecione um funcionário para continuar.");
       return;
     }
-    if (!profile?.name || !profile.whatsapp) {
+    if (!profile?.name || !profile.whatsapp || !profile.cpf) {
       showError("Não foi possível carregar os dados do seu perfil. Tente novamente.");
       return;
     }
     navigate("/calendar", {
-      state: { clientName: profile.name, clientWhatsapp: profile.whatsapp, selectedServices, totalAmount, selectedEmployeeId },
+      state: { clientName: profile.name, clientWhatsapp: profile.whatsapp, clientCpf: profile.cpf, selectedServices, totalAmount, selectedEmployeeId },
     });
   };
 

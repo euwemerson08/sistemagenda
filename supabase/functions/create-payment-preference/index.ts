@@ -33,6 +33,9 @@ serve(async (req) => {
     }
     const accessToken = settingsData.settings.accessToken;
 
+    const [firstName, ...lastNameParts] = appointmentDetails.client_name.split(' ');
+    const lastName = lastNameParts.join(' ');
+
     const preference = {
       items: appointmentDetails.services.map((service: any) => ({
         title: service.name,
@@ -40,8 +43,13 @@ serve(async (req) => {
         unit_price: service.price,
       })),
       payer: {
-        name: appointmentDetails.client_name,
+        name: firstName,
+        surname: lastName || firstName,
         email: appointmentDetails.client_email,
+        identification: {
+          type: "CPF",
+          number: appointmentDetails.client_cpf.replace(/\D/g, ''),
+        },
       },
       back_urls: {
         success: `${Deno.env.get('SUPABASE_URL')}/success`, // Placeholder, not used in this flow

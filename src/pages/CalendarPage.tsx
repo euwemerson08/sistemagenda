@@ -23,9 +23,10 @@ interface Service {
 const CalendarPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { clientName, clientWhatsapp, selectedServices, totalAmount, selectedEmployeeId } = (location.state || {}) as {
+  const { clientName, clientWhatsapp, clientCpf, selectedServices, totalAmount, selectedEmployeeId } = (location.state || {}) as {
     clientName?: string;
     clientWhatsapp?: string;
+    clientCpf?: string;
     selectedServices?: Service[];
     totalAmount?: number;
     selectedEmployeeId?: string;
@@ -94,7 +95,8 @@ const CalendarPage: React.FC = () => {
     const appointmentDetails = {
       client_name: clientName,
       client_whatsapp: clientWhatsapp,
-      client_email: user.email, // Agora é seguro usar user.email
+      client_email: user.email,
+      client_cpf: clientCpf,
       appointment_date: appointmentDate.toISOString(),
       services: selectedServices.map(s => ({ id: s.id, name: s.name, price: s.price, duration: s.duration })),
       total_amount: totalAmount,
