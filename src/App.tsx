@@ -2,17 +2,19 @@
 
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
-import ServiceSelectionPage from "./pages/ServiceSelectionPage"; // Importar a página de seleção de serviços
-import { Toaster } from "@/components/ui/toaster"; // Importar o Toaster para exibir as mensagens de toast
+import ServiceSelectionPage from "./pages/ServiceSelectionPage";
+import CalendarPage from "./pages/CalendarPage"; // Importar a nova página de calendário
+import { Toaster } from "@/components/ui/toaster";
 
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<Index />} />
-        <Route path="/services" element={<ServiceSelectionPage />} /> {/* Nova rota para seleção de serviços */}
+        <Route path="/services" element={<ServiceSelectionPage />} />
+        <Route path="/calendar" element={<CalendarPage />} /> {/* Nova rota para o calendário */}
       </Routes>
-      <Toaster /> {/* Adicionar o Toaster aqui para que as mensagens apareçam */}
+      <Toaster />
     </Router>
   );
 }

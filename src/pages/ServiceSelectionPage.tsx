@@ -5,7 +5,7 @@ import ServiceCard from "@/components/ServiceCard";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { Separator } from "@/components/ui/separator";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom"; // Importar useNavigate
 import { Input } from "@/components/ui/input";
 
 interface Service {
@@ -26,6 +26,7 @@ const mockServices: Service[] = [
 
 const ServiceSelectionPage: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate(); // Inicializar useNavigate
   const { clientName, clientWhatsapp } = (location.state || {}) as { clientName?: string; clientWhatsapp?: string };
 
   const [selectedServiceIds, setSelectedServiceIds] = useState<Set<string>>(new Set());
@@ -70,13 +71,10 @@ const ServiceSelectionPage: React.FC = () => {
       });
       return;
     }
-    toast({
-      title: "Serviços selecionados!",
-      description: `Você selecionou ${selectedServices.length} serviço(s) com um total de R$ ${totalAmount.toFixed(2)}.`,
+    // Navegar para a página do calendário, passando os dados
+    navigate("/calendar", {
+      state: { clientName, clientWhatsapp, selectedServices, totalAmount },
     });
-    console.log("Serviços selecionados:", selectedServices);
-    console.log("Cliente:", clientName, "WhatsApp:", clientWhatsapp);
-    // Aqui você pode adicionar a lógica para prosseguir, como navegar para uma página de agendamento
   };
 
   return (
@@ -99,7 +97,7 @@ const ServiceSelectionPage: React.FC = () => {
         />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-8"> {/* Ajustado gap para 3 */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
         {filteredServices.map((service) => (
           <ServiceCard
             key={service.id}
@@ -131,7 +129,7 @@ const ServiceSelectionPage: React.FC = () => {
           <span className="text-xl font-bold text-primary">R$ {totalAmount.toFixed(2)}</span>
         </div>
         <Button onClick={handleContinue} className="w-full mt-6 text-lg py-3">
-          Continuar
+          Agendar Horário
         </Button>
       </div>
       <div className="text-center mt-8">
