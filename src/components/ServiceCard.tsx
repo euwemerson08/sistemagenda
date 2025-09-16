@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 interface Service {
   id: string;
   name: string;
-  description: string;
+  description: string | null;
   price: number;
 }
 

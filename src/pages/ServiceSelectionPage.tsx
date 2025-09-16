@@ -1,36 +1,47 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import ServiceCard from "@/components/ServiceCard";
 import { Button } from "@/components/ui/button";
-import { showError } from "@/utils/toast"; // Importar showError do utils/toast
+import { showError, showSuccess } from "@/utils/toast";
 import { Separator } from "@/components/ui/separator";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 
 interface Service {
   id: string;
   name: string;
-  description: string;
+  description: string | null;
   price: number;
 }
-
-const mockServices: Service[] = [
-  { id: "1", name: "Corte de Cabelo", description: "Corte moderno e estilizado.", price: 50.00 },
-  { id: "2", name: "Barba", description: "Modelagem e aparo de barba com toalha quente.", price: 30.00 },
-  { id: "3", name: "Corte + Barba", description: "Combo completo de corte e barba.", price: 75.00 },
-  { id: "4", name: "Hidratação Capilar", description: "Tratamento para cabelos ressecados.", price: 40.00 },
-  { id: "5", name: "Coloração", description: "Coloração profissional para o cabelo.", price: 120.00 },
-  { id: "6", name: "Massagem Relaxante", description: "Sessão de massagem para aliviar o estresse.", price: 90.00 },
-];
 
 const ServiceSelectionPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { clientName, clientWhatsapp } = (location.state || {}) as { clientName?: string; clientWhatsapp?: string };
 
+  const [services, setServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedServiceIds, setSelectedServiceIds] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState<string>("");
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      setLoading(true);
+      const { data, error } = await supabase.from("services").select("*");
+      if (error) {
+        toast.error("Erro ao carregar os serviços: " + error.message);
+      } else {
+        setServices(data);
+      }
+      setLoading(false);
+    };
+
+    fetchServices();
+  }, []);
 
   const handleServiceSelect = (serviceId: string, isSelected: boolean) => {
     setSelectedServiceIds((prevSelected) => {
@@ -46,17 +57,17 @@ const ServiceSelectionPage: React.FC = () => {
 
   const filteredServices = useMemo(() => {
     if (!searchTerm) {
-      return mockServices;
+      return services;
     }
     const lowerCaseSearchTerm = searchTerm.toLowerCase();
-    return mockServices.filter(
+    return services.filter(
       (service) =>
         service.name.toLowerCase().includes(lowerCaseSearchTerm) ||
-        service.description.toLowerCase().includes(lowerCaseSearchTerm)
+        (service.description && service.description.toLowerCase().includes(lowerCaseSearchTerm))
     );
-  }, [searchTerm]);
+  }, [searchTerm, services]);
 
-  const selectedServices = mockServices.filter((service) =>
+  const selectedServices = services.filter((service) =>
     selectedServiceIds.has(service.id)
   );
 
@@ -92,16 +103,24 @@ const ServiceSelectionPage: React.FC = () => {
         />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
-        {filteredServices.map((service) => (
-          <ServiceCard
-            key={service.id}
-            service={service}
-            isSelected={selectedServiceIds.has(service.id)}
-            onSelect={handleServiceSelect}
-          />
-        ))}
-      </div>
+      {loading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <Skeleton key={index} className="h-32 w-full" />
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
+          {filteredServices.map((service) => (
+            <ServiceCard
+              key={service.id}
+              service={service}
+              isSelected={selectedServiceIds.has(service.id)}
+              onSelect={handleServiceSelect}
+            />
+          ))}
+        </div>
+      )}
 
       <Separator className="my-8" />
 

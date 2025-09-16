@@ -11,7 +11,7 @@ import { showError, showSuccess } from "@/utils/toast"; // Importar showError e 
 interface Service {
   id: string;
   name: string;
-  description: string;
+  description: string | null;
   price: number;
 }
 
