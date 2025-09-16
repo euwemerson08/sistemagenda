@@ -4,10 +4,10 @@ import React from "react";
 import { Link, Outlet } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, LogOut } from "lucide-react"; // Importar LogOut icon
+import { Menu, LogOut } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { supabase } from "@/integrations/supabase/client"; // Importar supabase client
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const AdminLayout: React.FC = () => {
@@ -17,6 +17,7 @@ const AdminLayout: React.FC = () => {
     { name: "Dashboard", path: "/admin" },
     { name: "Agendamentos", path: "/admin/appointments" },
     { name: "Serviços", path: "/admin/services" },
+    { name: "Funcionários", path: "/admin/employees" },
     { name: "Horários de Funcionamento", path: "/admin/operating-hours" },
   ];
 
