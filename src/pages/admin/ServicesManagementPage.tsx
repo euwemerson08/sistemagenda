@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { createClient } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client"; // Corrigido: importar 'supabase' em vez de 'createClient'
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,17 +23,18 @@ interface Service {
   name: string;
   description: string | null;
   price: number;
-  duration: number | null; // Adicionando a propriedade duration
+  duration: number | null;
 }
 
 export default function ServicesManagementPage() {
-  const supabase = createClient();
+  // Não é mais necessário chamar createClient() aqui, pois 'supabase' já é a instância
+  // const supabase = createClient(); 
   const [services, setServices] = useState<Service[]>([]);
   const [newService, setNewService] = useState<Omit<Service, "id" | "created_at">>({
     name: "",
     description: "",
     price: 0,
-    duration: null, // Inicializando duration
+    duration: null,
   });
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
