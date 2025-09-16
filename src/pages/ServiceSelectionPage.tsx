@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import React, { useState, useMemo } from "react";
+import ServiceCard from "@/components/ServiceCard";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/components/ui/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { Separator } from "@/components/ui/separator";
+import { Link, useLocation } from "react-router-dom";
+import { Input } from "@/components/ui/input";
 
 interface Service {
   id: string;
@@ -16,29 +15,51 @@ interface Service {
   price: number;
 }
 
-function ServiceSelectionPage() {
-  const navigate = useNavigate();
+const mockServices: Service[] = [
+  { id: "1", name: "Corte de Cabelo", description: "Corte moderno e estilizado.", price: 50.00 },
+  { id: "2", name: "Barba", description: "Modelagem e aparo de barba com toalha quente.", price: 30.00 },
+  { id: "3", name: "Corte + Barba", description: "Combo completo de corte e barba.", price: 75.00 },
+  { id: "4", name: "Hidratação Capilar", description: "Tratamento para cabelos ressecados.", price: 40.00 },
+  { id: "5", name: "Coloração", description: "Coloração profissional para o cabelo.", price: 120.00 },
+  { id: "6", name: "Massagem Relaxante", description: "Sessão de massagem para aliviar o estresse.", price: 90.00 },
+];
+
+const ServiceSelectionPage: React.FC = () => {
   const location = useLocation();
-  const { clientInfo } = location.state || {};
+  const { clientName, clientWhatsapp } = (location.state || {}) as { clientName?: string; clientWhatsapp?: string };
 
-  const { data: services, isLoading, error } = useQuery<Service[]>({
-    queryKey: ["services"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("services").select("*");
-      if (error) throw error;
-      return data;
-    },
-  });
+  const [selectedServiceIds, setSelectedServiceIds] = useState<Set<string>>(new Set());
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
-  const [selectedServices, setSelectedServices] = useState<Service[]>([]);
-
-  const handleServiceToggle = (service: Service) => {
-    setSelectedServices((prevSelected) =>
-      prevSelected.some((s) => s.id === service.id)
-        ? prevSelected.filter((s) => s.id !== service.id)
-        : [...prevSelected, service]
-    );
+  const handleServiceSelect = (serviceId: string, isSelected: boolean) => {
+    setSelectedServiceIds((prevSelected) => {
+      const newSelected = new Set(prevSelected);
+      if (isSelected) {
+        newSelected.add(serviceId);
+      } else {
+        newSelected.delete(serviceId);
+      }
+      return newSelected;
+    });
   };
+
+  const filteredServices = useMemo(() => {
+    if (!searchTerm) {
+      return mockServices;
+    }
+    const lowerCaseSearchTerm = searchTerm.toLowerCase();
+    return mockServices.filter(
+      (service) =>
+        service.name.toLowerCase().includes(lowerCaseSearchTerm) ||
+        service.description.toLowerCase().includes(lowerCaseSearchTerm)
+    );
+  }, [searchTerm]);
+
+  const selectedServices = mockServices.filter((service) =>
+    selectedServiceIds.has(service.id)
+  );
+
+  const totalAmount = selectedServices.reduce((sum, service) => sum + service.price, 0);
 
   const handleContinue = () => {
     if (selectedServices.length === 0) {
@@ -49,67 +70,77 @@ function ServiceSelectionPage() {
       });
       return;
     }
-    navigate("/calendar", { state: { clientInfo, selectedServices } });
+    toast({
+      title: "Serviços selecionados!",
+      description: `Você selecionou ${selectedServices.length} serviço(s) com um total de R$ ${totalAmount.toFixed(2)}.`,
+    });
+    console.log("Serviços selecionados:", selectedServices);
+    console.log("Cliente:", clientName, "WhatsApp:", clientWhatsapp);
+    // Aqui você pode adicionar a lógica para prosseguir, como navegar para uma página de agendamento
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <p>Carregando serviços...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <p>Erro ao carregar serviços: {error.message}</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-      <Card className="w-full max-w-2xl shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">Selecione os Serviços</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="mb-4 text-center text-gray-600">
-            Olá, {clientInfo?.name || "cliente"}! Por favor, escolha os serviços desejados.
-          </p>
-          <div className="space-y-4">
-            {services?.map((service) => (
-              <div
-                key={service.id}
-                className="flex items-center justify-between p-4 border rounded-md bg-white hover:bg-gray-50 transition-colors"
-              >
-                <div className="flex items-center space-x-3">
-                  <Checkbox
-                    id={`service-${service.id}`}
-                    checked={selectedServices.some((s) => s.id === service.id)}
-                    onCheckedChange={() => handleServiceToggle(service)}
-                  />
-                  <label
-                    htmlFor={`service-${service.id}`}
-                    className="text-lg font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    {service.name}
-                  </label>
-                </div>
-                <span className="text-lg font-semibold text-blue-600">
-                  R$ {service.price.toFixed(2)}
-                </span>
-              </div>
+    <div className="container mx-auto p-4 sm:p-6 lg:p-8 max-w-4xl">
+      <h1 className="text-3xl font-bold mb-4 text-center">Selecione Seus Serviços</h1>
+      
+      {clientName && clientWhatsapp && (
+        <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-md text-center">
+          <p className="text-lg font-medium">Olá, {clientName}!</p>
+          <p className="text-sm text-muted-foreground">Seu WhatsApp: {clientWhatsapp}</p>
+        </div>
+      )}
+
+      <div className="mb-6">
+        <Input
+          placeholder="Buscar serviços..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full max-w-md mx-auto block"
+        />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-8"> {/* Ajustado gap para 3 */}
+        {filteredServices.map((service) => (
+          <ServiceCard
+            key={service.id}
+            service={service}
+            isSelected={selectedServiceIds.has(service.id)}
+            onSelect={handleServiceSelect}
+          />
+        ))}
+      </div>
+
+      <Separator className="my-8" />
+
+      <div className="bg-card p-6 rounded-lg shadow-md">
+        <h2 className="text-2xl font-semibold mb-4">Resumo da Seleção</h2>
+        {selectedServices.length === 0 ? (
+          <p className="text-muted-foreground">Nenhum serviço selecionado.</p>
+        ) : (
+          <ul className="space-y-2 mb-4">
+            {selectedServices.map((service) => (
+              <li key={service.id} className="flex justify-between items-center">
+                <span className="text-lg">{service.name}</span>
+                <span className="font-medium">R$ {service.price.toFixed(2)}</span>
+              </li>
             ))}
-          </div>
-          <Button onClick={handleContinue} className="w-full mt-6 text-lg py-3">
-            Continuar
-          </Button>
-        </CardContent>
-      </Card>
+          </ul>
+        )}
+        <div className="flex justify-between items-center border-t pt-4 mt-4">
+          <span className="text-xl font-bold">Total:</span>
+          <span className="text-xl font-bold text-primary">R$ {totalAmount.toFixed(2)}</span>
+        </div>
+        <Button onClick={handleContinue} className="w-full mt-6 text-lg py-3">
+          Continuar
+        </Button>
+      </div>
+      <div className="text-center mt-8">
+        <Link to="/" className="text-sm text-blue-500 hover:underline">
+          Voltar para a página inicial
+        </Link>
+      </div>
     </div>
   );
-}
+};
 
 export default ServiceSelectionPage;
