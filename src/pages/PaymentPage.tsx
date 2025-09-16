@@ -96,7 +96,7 @@ const PaymentPage: React.FC = () => {
 
     return (
       <Payment
-        initialization={{ preferenceId }} // FIX: Removed redundant 'amount' prop
+        initialization={{ amount: totalAmount, preferenceId }} // FIX: Re-added 'amount' as it's required by the Brick component for initialization.
         customization={customization}
         onSubmit={async (param) => {
           await createAppointment(param);
