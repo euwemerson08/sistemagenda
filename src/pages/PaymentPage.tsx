@@ -13,7 +13,6 @@ const PaymentPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { appointmentDetails, preferenceId } = location.state || {};
-  // FIX: Correctly destructure 'total_amount' and rename it to 'totalAmount'
   const { total_amount: totalAmount, services } = appointmentDetails || {};
 
   const [publicKey, setPublicKey] = useState<string | null>(null);
@@ -97,7 +96,7 @@ const PaymentPage: React.FC = () => {
 
     return (
       <Payment
-        initialization={{ preferenceId, amount: totalAmount }}
+        initialization={{ preferenceId }} // FIX: Removed redundant 'amount' prop
         customization={customization}
         onSubmit={async (param) => {
           await createAppointment(param);
@@ -108,7 +107,6 @@ const PaymentPage: React.FC = () => {
     );
   };
 
-  // Add a guard to prevent rendering with incomplete data before redirect
   if (!appointmentDetails) {
     return <div className="min-h-screen flex items-center justify-center">Carregando...</div>;
   }
@@ -137,8 +135,7 @@ const PaymentPage: React.FC = () => {
               <Separator className="my-3" />
               <div className="flex justify-between font-bold text-lg">
                 <span>Total</span>
-                {/* Add a check for totalAmount to be safe */}
-                <span>R$ {totalAmount ? totalAmount.toFixed(2) : '0.00'}</span>
+                <span>R$ {totalAmount ? Number(totalAmount).toFixed(2) : '0.00'}</span>
               </div>
             </div>
           )}
