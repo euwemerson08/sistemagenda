@@ -4,18 +4,25 @@ import React, { useState, useMemo, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import ServiceCard from "@/components/ServiceCard";
 import { Button } from "@/components/ui/button";
-import { showError, showSuccess } from "@/utils/toast";
+import { showError } from "@/utils/toast";
 import { Separator } from "@/components/ui/separator";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 interface Service {
   id: string;
   name: string;
   description: string | null;
   price: number;
+}
+
+interface Employee {
+  id: string;
+  name: string;
 }
 
 const ServiceSelectionPage: React.FC = () => {
@@ -27,6 +34,9 @@ const ServiceSelectionPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [selectedServiceIds, setSelectedServiceIds] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [availableEmployees, setAvailableEmployees] = useState<Employee[]>([]);
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
+  const [loadingEmployees, setLoadingEmployees] = useState(false);
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -42,6 +52,31 @@ const ServiceSelectionPage: React.FC = () => {
 
     fetchServices();
   }, []);
+
+  useEffect(() => {
+    const fetchAvailableEmployees = async (serviceIds: string[]) => {
+      if (serviceIds.length === 0) {
+        setAvailableEmployees([]);
+        setSelectedEmployeeId(null);
+        return;
+      }
+      setLoadingEmployees(true);
+      const { data, error } = await supabase.rpc('get_employees_for_services', {
+        p_service_ids: serviceIds,
+      });
+
+      if (error) {
+        showError("Erro ao buscar funcionários disponíveis.");
+        setAvailableEmployees([]);
+      } else {
+        setAvailableEmployees(data);
+      }
+      setSelectedEmployeeId(null);
+      setLoadingEmployees(false);
+    };
+
+    fetchAvailableEmployees(Array.from(selectedServiceIds));
+  }, [selectedServiceIds]);
 
   const handleServiceSelect = (serviceId: string, isSelected: boolean) => {
     setSelectedServiceIds((prevSelected) => {
@@ -78,8 +113,12 @@ const ServiceSelectionPage: React.FC = () => {
       showError("Por favor, selecione pelo menos um serviço para continuar.");
       return;
     }
+    if (!selectedEmployeeId) {
+      showError("Por favor, selecione um funcionário para continuar.");
+      return;
+    }
     navigate("/calendar", {
-      state: { clientName, clientWhatsapp, selectedServices, totalAmount },
+      state: { clientName, clientWhatsapp, selectedServices, totalAmount, selectedEmployeeId },
     });
   };
 
@@ -119,6 +158,26 @@ const ServiceSelectionPage: React.FC = () => {
               onSelect={handleServiceSelect}
             />
           ))}
+        </div>
+      )}
+
+      {selectedServiceIds.size > 0 && (
+        <div className="my-6 max-w-md mx-auto">
+          <Label htmlFor="employee-select" className="text-lg font-semibold mb-2 block text-center">Selecione o Funcionário</Label>
+          {loadingEmployees ? (
+            <Skeleton className="h-10 w-full" />
+          ) : (
+            <Select onValueChange={setSelectedEmployeeId} value={selectedEmployeeId || undefined} disabled={availableEmployees.length === 0}>
+              <SelectTrigger id="employee-select">
+                <SelectValue placeholder={availableEmployees.length > 0 ? "Escolha um profissional" : "Nenhum profissional disponível"} />
+              </SelectTrigger>
+              <SelectContent>
+                {availableEmployees.map(emp => (
+                  <SelectItem key={emp.id} value={emp.id}>{emp.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
       )}
 

@@ -19,11 +19,12 @@ interface Service {
 const CalendarPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { clientName, clientWhatsapp, selectedServices, totalAmount } = (location.state || {}) as {
+  const { clientName, clientWhatsapp, selectedServices, totalAmount, selectedEmployeeId } = (location.state || {}) as {
     clientName?: string;
     clientWhatsapp?: string;
     selectedServices?: Service[];
     totalAmount?: number;
+    selectedEmployeeId?: string;
   };
 
   const [date, setDate] = useState<Date | undefined>(new Date());
@@ -49,6 +50,10 @@ const CalendarPage: React.FC = () => {
       showError("Ocorreu um erro, nenhum serviço selecionado.");
       return;
     }
+    if (!selectedEmployeeId) {
+      showError("Ocorreu um erro, nenhum funcionário selecionado.");
+      return;
+    }
 
     setIsSubmitting(true);
 
@@ -62,6 +67,7 @@ const CalendarPage: React.FC = () => {
       appointment_date: appointmentDate.toISOString(),
       services: selectedServices.map(s => ({ id: s.id, name: s.name, price: s.price })),
       total_amount: totalAmount,
+      employee_id: selectedEmployeeId,
     };
 
     const { error } = await supabase.from('appointments').insert([appointmentData]);
