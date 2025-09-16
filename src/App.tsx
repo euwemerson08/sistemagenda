@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import Index from "./pages/Index";
 import ServiceSelectionPage from "./pages/ServiceSelectionPage";
 import CalendarPage from "./pages/CalendarPage";
+import PaymentPage from "./pages/PaymentPage"; // Adicionado
 import AdminLayout from "./components/admin/AdminLayout";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import ServicesManagementPage from "./pages/admin/ServicesManagementPage";
@@ -11,6 +12,7 @@ import OperatingHoursManagementPage from "./pages/admin/OperatingHoursManagement
 import AppointmentsPage from "./pages/admin/AppointmentsPage";
 import EmployeesManagementPage from "./pages/admin/EmployeesManagementPage";
 import NewAppointmentPage from "./pages/admin/NewAppointmentPage";
+import SettingsManagementPage from "./pages/admin/SettingsManagementPage"; // Adicionado
 import Login from "./pages/Login";
 import { SessionContextProvider, useSession } from "./components/SessionContextProvider";
 import { Toaster } from "sonner";
@@ -44,6 +46,7 @@ function App() {
           {/* Customer Protected Routes */}
           <Route path="/services" element={<CustomerProtectedRoute><ServiceSelectionPage /></CustomerProtectedRoute>} />
           <Route path="/calendar" element={<CustomerProtectedRoute><CalendarPage /></CustomerProtectedRoute>} />
+          <Route path="/payment" element={<CustomerProtectedRoute><PaymentPage /></CustomerProtectedRoute>} />
 
           {/* Admin Protected Routes */}
           <Route path="/admin" element={<AdminProtectedRoute><AdminLayout /></AdminProtectedRoute>}>
@@ -53,6 +56,7 @@ function App() {
             <Route path="appointments" element={<AppointmentsPage />} />
             <Route path="employees" element={<EmployeesManagementPage />} />
             <Route path="new-appointment" element={<NewAppointmentPage />} />
+            <Route path="settings" element={<SettingsManagementPage />} />
           </Route>
         </Routes>
         <Toaster />
