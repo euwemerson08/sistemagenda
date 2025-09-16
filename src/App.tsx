@@ -7,6 +7,7 @@ import CalendarPage from "./pages/CalendarPage";
 import AdminLayout from "./components/admin/AdminLayout";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import ServicesManagementPage from "./pages/admin/ServicesManagementPage";
+import OperatingHoursManagementPage from "./pages/admin/OperatingHoursManagementPage"; // Importar a nova página
 import { Toaster } from "sonner";
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboardPage />} />
           <Route path="services" element={<ServicesManagementPage />} />
+          <Route path="operating-hours" element={<OperatingHoursManagementPage />} /> {/* Nova rota */}
           {/* Adicione mais rotas de administração aqui */}
         </Route>
       </Routes>
