@@ -9,7 +9,8 @@ import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import ServicesManagementPage from "./pages/admin/ServicesManagementPage";
 import OperatingHoursManagementPage from "./pages/admin/OperatingHoursManagementPage";
 import AppointmentsPage from "./pages/admin/AppointmentsPage";
-import EmployeesManagementPage from "./pages/admin/EmployeesManagementPage"; // Importar a nova página
+import EmployeesManagementPage from "./pages/admin/EmployeesManagementPage";
+import NewAppointmentPage from "./pages/admin/NewAppointmentPage"; // Importar a nova página
 import Login from "./pages/Login";
 import { SessionContextProvider, useSession } from "./components/SessionContextProvider";
 import { Toaster } from "sonner";
@@ -44,7 +45,8 @@ function App() {
             <Route path="services" element={<ServicesManagementPage />} />
             <Route path="operating-hours" element={<OperatingHoursManagementPage />} />
             <Route path="appointments" element={<AppointmentsPage />} />
-            <Route path="employees" element={<EmployeesManagementPage />} /> {/* Adicionar a nova rota */}
+            <Route path="employees" element={<EmployeesManagementPage />} />
+            <Route path="new-appointment" element={<NewAppointmentPage />} /> {/* Adicionar a nova rota */}
           </Route>
         </Routes>
         <Toaster />

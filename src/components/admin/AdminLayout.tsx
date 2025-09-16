@@ -12,6 +12,7 @@ import {
   ClipboardList,
   Users,
   Clock,
+  PlusCircle,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -24,6 +25,7 @@ const AdminLayout: React.FC = () => {
   const navLinks = [
     { name: "Dashboard", path: "/admin", icon: LayoutDashboard },
     { name: "Agendamentos", path: "/admin/appointments", icon: CalendarDays },
+    { name: "Novo Agendamento", path: "/admin/new-appointment", icon: PlusCircle },
     { name: "Serviços", path: "/admin/services", icon: ClipboardList },
     { name: "Funcionários", path: "/admin/employees", icon: Users },
     { name: "Horários de Funcionamento", path: "/admin/operating-hours", icon: Clock },
