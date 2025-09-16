@@ -226,9 +226,14 @@ export default function AppointmentsPage() {
                   <TableCell>{appointment.employees?.name || 'N/A'}</TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
-                      {Array.isArray(appointment.services) && appointment.services.map((service) => (
-                        <Badge key={service.id} variant="secondary">{service.name}</Badge>
-                      ))}
+                      {Array.isArray(appointment.services) &&
+                        appointment.services.map((service, index) =>
+                          service && typeof service === 'object' && service.name ? (
+                            <Badge key={service.id || index} variant="secondary">
+                              {service.name}
+                            </Badge>
+                          ) : null
+                        )}
                     </div>
                   </TableCell>
                   <TableCell>
