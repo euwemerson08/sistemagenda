@@ -33,6 +33,8 @@ const Index = () => {
               sign_in: {
                 email_label: 'Seu email',
                 password_label: 'Sua senha',
+                email_input_placeholder: 'seu@email.com',
+                password_input_placeholder: 'Sua senha',
                 button_label: 'Entrar',
                 social_provider_text: 'Entrar com {{provider}}',
                 link_text: 'Já tem uma conta? Entre',
@@ -40,12 +42,15 @@ const Index = () => {
               sign_up: {
                 email_label: 'Seu email',
                 password_label: 'Crie uma senha',
+                email_input_placeholder: 'seu@email.com',
+                password_input_placeholder: 'Crie uma senha segura',
                 button_label: 'Criar conta',
                 link_text: 'Não tem uma conta? Crie uma',
               },
               forgotten_password: {
                 email_label: 'Seu email',
                 password_label: 'Sua senha',
+                email_input_placeholder: 'seu@email.com',
                 button_label: 'Enviar instruções',
                 link_text: 'Esqueceu sua senha?',
               },
