@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { format, isSameDay } from "date-fns";
+import { format, isSameDay, isValid } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Calendar as CalendarIcon, MoreHorizontal, Pencil, Trash, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -116,12 +116,13 @@ export default function AppointmentsPage() {
 
   const filteredAppointments = useMemo(() => {
     return appointments.filter((appointment) => {
+      const appointmentDate = new Date(appointment.appointment_date);
       const nameMatch = clientNameFilter
         ? appointment.client_name.toLowerCase().includes(clientNameFilter.toLowerCase())
         : true;
-      const dateMatch = selectedDate
-        ? isSameDay(new Date(appointment.appointment_date), selectedDate)
-        : true;
+      const dateMatch = selectedDate && isValid(appointmentDate)
+        ? isSameDay(appointmentDate, selectedDate)
+        : !selectedDate;
       const employeeMatch = selectedEmployeeFilter
         ? appointment.employee_id === selectedEmployeeFilter
         : true;
@@ -143,6 +144,14 @@ export default function AppointmentsPage() {
       case "Pendente": return "outline";
       default: return "outline";
     }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    if (isValid(date)) {
+      return format(date, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
+    }
+    return "Data inválida";
   };
 
   if (loading) {
@@ -221,7 +230,7 @@ export default function AppointmentsPage() {
                     <div className="text-sm text-muted-foreground">{appointment.client_whatsapp}</div>
                   </TableCell>
                   <TableCell>
-                    {format(new Date(appointment.appointment_date), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                    {formatDate(appointment.appointment_date)}
                   </TableCell>
                   <TableCell>{appointment.employees?.name || 'N/A'}</TableCell>
                   <TableCell>
@@ -240,7 +249,7 @@ export default function AppointmentsPage() {
                     <Badge variant={getStatusVariant(appointment.status)}>{appointment.status}</Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    R$ {Number(appointment.total_amount).toFixed(2)}
+                    R$ {typeof appointment.total_amount === 'number' ? appointment.total_amount.toFixed(2) : '0.00'}
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
