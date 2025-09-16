@@ -41,6 +41,7 @@ serve(async (req) => {
       })),
       payer: {
         name: appointmentDetails.client_name,
+        email: appointmentDetails.client_email,
       },
       back_urls: {
         success: `${Deno.env.get('SUPABASE_URL')}/success`, // Placeholder, not used in this flow

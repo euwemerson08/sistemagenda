@@ -10,6 +10,7 @@ import { showError, showSuccess, showLoading, dismissToast } from "@/utils/toast
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useSession } from "@/components/SessionContextProvider";
 
 interface Service {
   id: string;
@@ -29,6 +30,7 @@ const CalendarPage: React.FC = () => {
     totalAmount?: number;
     selectedEmployeeId?: string;
   };
+  const { user } = useSession();
 
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
@@ -87,6 +89,7 @@ const CalendarPage: React.FC = () => {
     const appointmentDetails = {
       client_name: clientName,
       client_whatsapp: clientWhatsapp,
+      client_email: user?.email,
       appointment_date: appointmentDate.toISOString(),
       services: selectedServices.map(s => ({ id: s.id, name: s.name, price: s.price, duration: s.duration })),
       total_amount: totalAmount,
