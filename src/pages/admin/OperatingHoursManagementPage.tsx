@@ -5,10 +5,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import { Save } from "lucide-react";
 import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
 interface OperatingHour {
   id?: string;
@@ -145,82 +147,81 @@ export default function OperatingHoursManagementPage() {
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Gerenciamento de Horários de Funcionamento</h1>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[150px]">Dia da Semana</TableHead>
-            <TableHead>Horário de Trabalho</TableHead>
-            <TableHead>Pausa para Almoço</TableHead>
-            <TableHead className="w-[100px] text-center">Fechado</TableHead>
-            <TableHead className="text-right">Ações</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {operatingHours.map((hour) => (
-            <TableRow key={hour.day_of_week}>
-              <TableCell className="font-medium">{dayNames[hour.day_of_week]}</TableCell>
-              <TableCell>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {operatingHours.map((hour) => (
+          <Card key={hour.day_of_week}>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle>{dayNames[hour.day_of_week]}</CardTitle>
                 <div className="flex items-center gap-2">
+                  <Label htmlFor={`is_closed-${hour.day_of_week}`}>Fechado</Label>
+                  <Switch
+                    id={`is_closed-${hour.day_of_week}`}
+                    checked={hour.is_closed}
+                    onCheckedChange={(checked) => handleInputChange(hour.day_of_week, "is_closed", checked)}
+                  />
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className={cn("space-y-4", hour.is_closed && "opacity-50 pointer-events-none")}>
+              <div>
+                <Label className="font-medium">Horário de Trabalho</Label>
+                <div className="flex items-center gap-2 mt-2">
                   <Input
                     type="time"
                     value={hour.open_time || ""}
                     onChange={(e) => handleInputChange(hour.day_of_week, "open_time", e.target.value)}
-                    disabled={hour.is_closed}
-                    className="w-[110px]"
+                    className="w-full"
                   />
                   <span>às</span>
                   <Input
                     type="time"
                     value={hour.close_time || ""}
                     onChange={(e) => handleInputChange(hour.day_of_week, "close_time", e.target.value)}
-                    disabled={hour.is_closed}
-                    className="w-[110px]"
+                    className="w-full"
                   />
                 </div>
-              </TableCell>
-              <TableCell>
-                <div className="flex items-center gap-2">
+              </div>
+
+              <Separator />
+
+              <div>
+                <div className="flex items-center gap-2 mb-2">
                   <Switch
                     id={`has_break-${hour.day_of_week}`}
                     checked={hour.has_break}
                     onCheckedChange={(checked) => handleInputChange(hour.day_of_week, "has_break", checked)}
-                    disabled={hour.is_closed}
                   />
-                  <Label htmlFor={`has_break-${hour.day_of_week}`} className="text-sm font-normal">
-                    Com Pausa
+                  <Label htmlFor={`has_break-${hour.day_of_week}`}>
+                    Com Pausa para Almoço
                   </Label>
-                  <div className={`flex items-center gap-1 transition-opacity ${hour.has_break && !hour.is_closed ? 'opacity-100' : 'opacity-50 pointer-events-none'}`}>
-                    <Input
-                      type="time"
-                      value={hour.break_start_time || ""}
-                      onChange={(e) => handleInputChange(hour.day_of_week, "break_start_time", e.target.value)}
-                      className="w-[110px]"
-                    />
-                    <span>-</span>
-                    <Input
-                      type="time"
-                      value={hour.break_end_time || ""}
-                      onChange={(e) => handleInputChange(hour.day_of_week, "break_end_time", e.target.value)}
-                      className="w-[110px]"
-                    />
-                  </div>
                 </div>
-              </TableCell>
-              <TableCell className="text-center">
-                <Switch
-                  checked={hour.is_closed}
-                  onCheckedChange={(checked) => handleInputChange(hour.day_of_week, "is_closed", checked)}
-                />
-              </TableCell>
-              <TableCell className="text-right">
-                <Button variant="ghost" size="icon" onClick={() => handleSaveOperatingHour(hour)}>
-                  <Save className="h-4 w-4" />
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+                <div className={cn("flex items-center gap-2 transition-opacity", hour.has_break ? 'opacity-100' : 'opacity-50 pointer-events-none')}>
+                  <Input
+                    type="time"
+                    value={hour.break_start_time || ""}
+                    onChange={(e) => handleInputChange(hour.day_of_week, "break_start_time", e.target.value)}
+                    className="w-full"
+                  />
+                  <span>-</span>
+                  <Input
+                    type="time"
+                    value={hour.break_end_time || ""}
+                    onChange={(e) => handleInputChange(hour.day_of_week, "break_end_time", e.target.value)}
+                    className="w-full"
+                  />
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter className="flex justify-end">
+              <Button onClick={() => handleSaveOperatingHour(hour)}>
+                <Save className="mr-2 h-4 w-4" />
+                Salvar
+              </Button>
+            </CardFooter>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }
