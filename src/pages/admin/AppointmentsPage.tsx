@@ -226,7 +226,7 @@ export default function AppointmentsPage() {
                   <TableCell>{appointment.employees?.name || 'N/A'}</TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
-                      {appointment.services.map((service) => (
+                      {Array.isArray(appointment.services) && appointment.services.map((service) => (
                         <Badge key={service.id} variant="secondary">{service.name}</Badge>
                       ))}
                     </div>
