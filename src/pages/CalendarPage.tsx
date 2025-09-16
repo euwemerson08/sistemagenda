@@ -86,13 +86,13 @@ const CalendarPage: React.FC = () => {
           <CardContent>
             <div className="mb-6">
               <h3 className="text-lg font-semibold mb-3">Selecione o Horário</h3>
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-48 overflow-y-auto pr-2">
+              <div className="flex flex-col space-y-2 max-h-48 overflow-y-auto pr-2">
                 {timeSlots.map((time) => (
                   <Button
                     key={time}
                     variant={selectedTime === time ? "default" : "outline"}
                     onClick={() => setSelectedTime(time)}
-                    className="text-sm"
+                    className="text-sm justify-start"
                   >
                     {time}
                   </Button>
