@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import ServiceCard from "@/components/ServiceCard";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { Separator } from "@/components/ui/separator";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { Input } from "@/components/ui/input";
 
 interface Service {
   id: string;
@@ -24,7 +25,11 @@ const mockServices: Service[] = [
 ];
 
 const ServiceSelectionPage: React.FC = () => {
+  const location = useLocation();
+  const { clientName, clientWhatsapp } = (location.state || {}) as { clientName?: string; clientWhatsapp?: string };
+
   const [selectedServiceIds, setSelectedServiceIds] = useState<Set<string>>(new Set());
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
   const handleServiceSelect = (serviceId: string, isSelected: boolean) => {
     setSelectedServiceIds((prevSelected) => {
@@ -37,6 +42,18 @@ const ServiceSelectionPage: React.FC = () => {
       return newSelected;
     });
   };
+
+  const filteredServices = useMemo(() => {
+    if (!searchTerm) {
+      return mockServices;
+    }
+    const lowerCaseSearchTerm = searchTerm.toLowerCase();
+    return mockServices.filter(
+      (service) =>
+        service.name.toLowerCase().includes(lowerCaseSearchTerm) ||
+        service.description.toLowerCase().includes(lowerCaseSearchTerm)
+    );
+  }, [searchTerm]);
 
   const selectedServices = mockServices.filter((service) =>
     selectedServiceIds.has(service.id)
@@ -58,15 +75,32 @@ const ServiceSelectionPage: React.FC = () => {
       description: `Você selecionou ${selectedServices.length} serviço(s) com um total de R$ ${totalAmount.toFixed(2)}.`,
     });
     console.log("Serviços selecionados:", selectedServices);
+    console.log("Cliente:", clientName, "WhatsApp:", clientWhatsapp);
     // Aqui você pode adicionar a lógica para prosseguir, como navegar para uma página de agendamento
   };
 
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8 max-w-4xl">
-      <h1 className="text-3xl font-bold mb-6 text-center">Selecione Seus Serviços</h1>
+      <h1 className="text-3xl font-bold mb-4 text-center">Selecione Seus Serviços</h1>
+      
+      {clientName && clientWhatsapp && (
+        <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-md text-center">
+          <p className="text-lg font-medium">Olá, {clientName}!</p>
+          <p className="text-sm text-muted-foreground">Seu WhatsApp: {clientWhatsapp}</p>
+        </div>
+      )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-        {mockServices.map((service) => (
+      <div className="mb-6">
+        <Input
+          placeholder="Buscar serviços..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full max-w-md mx-auto block"
+        />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-8"> {/* Ajustado gap para 3 */}
+        {filteredServices.map((service) => (
           <ServiceCard
             key={service.id}
             service={service}

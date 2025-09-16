@@ -22,26 +22,26 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, isSelected, onSelect
   return (
     <Card
       className={cn(
-        "flex flex-col justify-between p-4 cursor-pointer transition-all duration-200",
+        "flex flex-col justify-between p-3 cursor-pointer transition-all duration-200 text-sm", // Reduzido padding e tamanho da fonte base
         isSelected ? "border-primary ring-2 ring-primary" : "hover:border-gray-300 dark:hover:border-gray-700"
       )}
       onClick={() => onSelect(service.id, !isSelected)}
     >
-      <CardHeader className="p-0 pb-2">
+      <CardHeader className="p-0 pb-1"> {/* Reduzido padding */}
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">{service.name}</CardTitle>
+          <CardTitle className="text-base font-semibold">{service.name}</CardTitle> {/* Reduzido tamanho da fonte */}
           <Checkbox
             checked={isSelected}
             onCheckedChange={(checked) => onSelect(service.id, checked === true)}
-            className="h-5 w-5"
+            className="h-4 w-4" // Reduzido tamanho do checkbox
           />
         </div>
-        <CardDescription className="text-sm text-muted-foreground">
+        <CardDescription className="text-xs text-muted-foreground"> {/* Reduzido tamanho da fonte */}
           {service.description}
         </CardDescription>
       </CardHeader>
-      <CardContent className="p-0">
-        <p className="text-lg font-semibold text-primary">
+      <CardContent className="p-0 pt-2"> {/* Adicionado pt-2 para espaçamento */}
+        <p className="text-base font-bold text-primary"> {/* Reduzido tamanho da fonte */}
           R$ {service.price.toFixed(2)}
         </p>
       </CardContent>
