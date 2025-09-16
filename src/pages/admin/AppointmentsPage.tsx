@@ -116,16 +116,24 @@ export default function AppointmentsPage() {
 
   const filteredAppointments = useMemo(() => {
     return appointments.filter((appointment) => {
-      const appointmentDate = new Date(appointment.appointment_date);
+      if (!appointment) return false;
+
       const nameMatch = clientNameFilter
-        ? appointment.client_name.toLowerCase().includes(clientNameFilter.toLowerCase())
+        ? (appointment.client_name || "").toLowerCase().includes(clientNameFilter.toLowerCase())
         : true;
-      const dateMatch = selectedDate && isValid(appointmentDate)
-        ? isSameDay(appointmentDate, selectedDate)
-        : !selectedDate;
+
+      const dateMatch = (() => {
+        if (!selectedDate) return true;
+        if (!appointment.appointment_date) return false;
+        const appointmentDate = new Date(appointment.appointment_date);
+        if (!isValid(appointmentDate)) return false;
+        return isSameDay(appointmentDate, selectedDate);
+      })();
+
       const employeeMatch = selectedEmployeeFilter
         ? appointment.employee_id === selectedEmployeeFilter
         : true;
+        
       return nameMatch && dateMatch && employeeMatch;
     });
   }, [appointments, clientNameFilter, selectedDate, selectedEmployeeFilter]);
