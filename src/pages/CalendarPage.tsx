@@ -79,6 +79,11 @@ const CalendarPage: React.FC = () => {
       return;
     }
 
+    if (!user || !user.email) {
+      showError("Não foi possível carregar seus dados de usuário. Por favor, tente fazer login novamente.");
+      return;
+    }
+
     const loadingToast = showLoading("Preparando pagamento...");
     setIsSubmitting(true);
 
@@ -89,7 +94,7 @@ const CalendarPage: React.FC = () => {
     const appointmentDetails = {
       client_name: clientName,
       client_whatsapp: clientWhatsapp,
-      client_email: user?.email,
+      client_email: user.email, // Agora é seguro usar user.email
       appointment_date: appointmentDate.toISOString(),
       services: selectedServices.map(s => ({ id: s.id, name: s.name, price: s.price, duration: s.duration })),
       total_amount: totalAmount,
