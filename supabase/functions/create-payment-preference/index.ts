@@ -33,8 +33,10 @@ serve(async (req) => {
     }
     const accessToken = settingsData.settings.accessToken;
 
-    const [firstName, ...lastNameParts] = appointmentDetails.client_name.split(' ');
-    const lastName = lastNameParts.join(' ');
+    // Robust logic to handle single or multi-part names
+    const nameParts = appointmentDetails.client_name.trim().split(' ').filter(Boolean);
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : firstName;
 
     const preference = {
       items: appointmentDetails.services.map((service: any) => ({
@@ -44,7 +46,7 @@ serve(async (req) => {
       })),
       payer: {
         name: firstName,
-        surname: lastName || firstName,
+        surname: lastName, // This now ensures a surname is always present
         email: appointmentDetails.client_email,
         identification: {
           type: "CPF",
@@ -70,6 +72,7 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errorBody = await response.json();
+      console.error("Mercado Pago API Error:", errorBody);
       throw new Error(`Mercado Pago API error: ${JSON.stringify(errorBody)}`);
     }
 
@@ -80,6 +83,7 @@ serve(async (req) => {
       status: 200,
     });
   } catch (error) {
+    console.error("Function Error:", error);
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,
