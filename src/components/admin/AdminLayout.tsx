@@ -4,9 +4,11 @@ import React from "react";
 import { Link, Outlet } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu } from "lucide-react";
+import { Menu, LogOut } from "lucide-react"; // Importar LogOut icon
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { supabase } from "@/integrations/supabase/client"; // Importar supabase client
+import { toast } from "sonner";
 
 const AdminLayout: React.FC = () => {
   const isMobile = useIsMobile();
@@ -14,9 +16,17 @@ const AdminLayout: React.FC = () => {
   const navLinks = [
     { name: "Dashboard", path: "/admin" },
     { name: "Serviços", path: "/admin/services" },
-    { name: "Horários de Funcionamento", path: "/admin/operating-hours" }, // Novo link
-    // Adicione mais links de administração aqui
+    { name: "Horários de Funcionamento", path: "/admin/operating-hours" },
   ];
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast.error("Erro ao fazer logout: " + error.message);
+    } else {
+      toast.success("Logout realizado com sucesso!");
+    }
+  };
 
   const SidebarContent = (
     <div className="flex flex-col h-full p-4">
@@ -29,8 +39,8 @@ const AdminLayout: React.FC = () => {
         ))}
       </nav>
       <Separator className="my-4" />
-      <Button variant="outline" className="mt-auto">
-        Sair
+      <Button variant="outline" className="mt-auto" onClick={handleLogout}>
+        <LogOut className="mr-2 h-4 w-4" /> Sair
       </Button>
     </div>
   );
