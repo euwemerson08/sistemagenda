@@ -152,9 +152,10 @@ const CalendarPage: React.FC = () => {
       } catch (e: any) {
         dismissToast(paymentToast);
         setIsSubmitting(false);
-        let errorMessage = e.message;
-        // Check for a more specific error message from the function's response body
-        if (e.context && e.context.error) {
+        let errorMessage = "Ocorreu um erro desconhecido ao iniciar o pagamento.";
+        if (e.message) {
+          errorMessage = e.message;
+        } else if (e.context && e.context.error) {
           errorMessage = e.context.error;
         }
         showError("Erro ao iniciar pagamento: " + errorMessage);
