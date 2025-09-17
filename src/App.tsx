@@ -17,6 +17,7 @@ import { Toaster } from "sonner";
 import React from "react";
 import CustomerProtectedRoute from "./components/CustomerProtectedRoute";
 import UpdatePasswordPage from "./pages/UpdatePasswordPage";
+import PaymentSettingsPage from "./pages/admin/PaymentSettingsPage"; // Importando a nova página
 
 // Componente de rota protegida para Admin
 const AdminProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -55,6 +56,7 @@ function App() {
             <Route path="appointments" element={<AppointmentsPage />} />
             <Route path="employees" element={<EmployeesManagementPage />} />
             <Route path="new-appointment" element={<NewAppointmentPage />} />
+            <Route path="payment-settings" element={<PaymentSettingsPage />} /> {/* Nova rota */}
           </Route>
         </Routes>
         <Toaster />
