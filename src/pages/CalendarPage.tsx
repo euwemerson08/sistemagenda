@@ -136,7 +136,7 @@ const CalendarPage: React.FC = () => {
       const paymentToast = showLoading("Redirecionando para o pagamento...");
 
       try {
-        const { data: paymentData } = await supabase.functions.invoke('create-payment', {
+        const { data: paymentResponse, error: invokeError } = await supabase.functions.invoke('create-payment', {
           body: {
             appointmentId: newAppointment.id,
             services: selectedServices.map(s => ({ name: s.name, price: s.price })),
@@ -146,7 +146,15 @@ const CalendarPage: React.FC = () => {
           },
         });
 
-        window.location.href = paymentData.init_point;
+        if (invokeError) {
+          throw new Error(invokeError.message || invokeError.context || "Erro desconhecido ao invocar função de pagamento.");
+        }
+
+        if (!paymentResponse || !paymentResponse.init_point) {
+          throw new Error("Resposta de pagamento inválida: init_point não encontrado.");
+        }
+
+        window.location.href = paymentResponse.init_point;
       } catch (e: any) {
         dismissToast(paymentToast);
         setIsSubmitting(false);
