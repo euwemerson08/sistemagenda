@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal } from "lucide-react";
+import { Terminal, CheckCircle2, XCircle } from "lucide-react";
 
 interface MercadoPagoSettings {
   enabled: boolean;
@@ -18,6 +18,7 @@ const PaymentSettingsPage: React.FC = () => {
   const [settings, setSettings] = useState<MercadoPagoSettings>({ enabled: false });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [mercadoPagoPublicKeyStatus, setMercadoPagoPublicKeyStatus] = useState<"configured" | "missing">("missing");
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -36,7 +37,16 @@ const PaymentSettingsPage: React.FC = () => {
       setLoading(false);
     };
 
+    const checkPublicKey = () => {
+      if (import.meta.env.VITE_MERCADO_PAGO_PUBLIC_KEY && import.meta.env.VITE_MERCADO_PAGO_PUBLIC_KEY !== "SUA_CHAVE_PUBLICA_AQUI") {
+        setMercadoPagoPublicKeyStatus("configured");
+      } else {
+        setMercadoPagoPublicKeyStatus("missing");
+      }
+    };
+
     fetchSettings();
+    checkPublicKey();
   }, []);
 
   const handleSave = async () => {
@@ -80,32 +90,26 @@ const PaymentSettingsPage: React.FC = () => {
             />
           </div>
 
-          <Alert>
-            <Terminal className="h-4 w-4" />
-            <AlertTitle>Ação Necessária: Configurar Chaves</AlertTitle>
-            <AlertDescription className="space-y-4 mt-2">
-              <p>
-                Para que a integração funcione, você precisa configurar suas chaves de API do Mercado Pago em locais seguros.
-                Isso é feito fora deste painel para garantir a segurança máxima.
-              </p>
-              <div>
-                <Label className="font-semibold">1. Access Token (Chave Secreta)</Label>
-                <p className="text-sm text-muted-foreground">
-                  Adicione esta chave como um "Secret" no seu projeto Supabase com o nome <code className="bg-muted p-1 rounded">MERCADO_PAGO_ACCESS_TOKEN</code>.
-                  <a href="#" onClick={() => alert('Link para o painel de Edge Functions do Supabase')} className="text-blue-500 hover:underline ml-2">
-                    Ir para o painel de Secrets
-                  </a>
-                </p>
-              </div>
-              <div>
-                <Label className="font-semibold">2. Public Key (Chave Pública)</Label>
-                <p className="text-sm text-muted-foreground">
-                  Adicione esta chave ao seu arquivo <code className="bg-muted p-1 rounded">.env</code> na raiz do projeto como: <br />
-                  <code className="bg-muted p-1 rounded">VITE_MERCADO_PAGO_PUBLIC_KEY=SUA_CHAVE_PUBLICA</code>
-                </p>
-              </div>
-            </AlertDescription>
-          </Alert>
+          {mercadoPagoPublicKeyStatus === "missing" && (
+            <Alert variant="destructive">
+              <XCircle className="h-4 w-4" />
+              <AlertTitle>Chave Pública do Mercado Pago Ausente!</AlertTitle>
+              <AlertDescription className="mt-2">
+                A chave pública do Mercado Pago (`VITE_MERCADO_PAGO_PUBLIC_KEY`) não está configurada no seu arquivo <code className="bg-muted p-1 rounded">.env</code>.
+                O pagamento online não funcionará corretamente sem ela.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {mercadoPagoPublicKeyStatus === "configured" && (
+            <Alert>
+              <CheckCircle2 className="h-4 w-4" />
+              <AlertTitle>Chave Pública do Mercado Pago Configurada</AlertTitle>
+              <AlertDescription className="mt-2">
+                A chave pública do Mercado Pago foi detectada. A integração deve funcionar corretamente.
+              </AlertDescription>
+            </Alert>
+          )}
         </CardContent>
         <CardFooter>
           <Button onClick={handleSave} disabled={isSubmitting || loading}>
