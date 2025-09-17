@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client"; // Corrigido: importar 'supabase' em vez de 'createClient'
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,8 +27,6 @@ interface Service {
 }
 
 export default function ServicesManagementPage() {
-  // Não é mais necessário chamar createClient() aqui, pois 'supabase' já é a instância
-  // const supabase = createClient(); 
   const [services, setServices] = useState<Service[]>([]);
   const [newService, setNewService] = useState<Omit<Service, "id" | "created_at">>({
     name: "",
