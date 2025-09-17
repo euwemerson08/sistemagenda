@@ -136,7 +136,7 @@ const CalendarPage: React.FC = () => {
       const paymentToast = showLoading("Redirecionando para o pagamento...");
 
       try {
-        const { data: paymentData, error: paymentError } = await supabase.functions.invoke('create-payment', {
+        const { data: paymentData } = await supabase.functions.invoke('create-payment', {
           body: {
             appointmentId: newAppointment.id,
             services: selectedServices.map(s => ({ name: s.name, price: s.price })),
@@ -146,18 +146,24 @@ const CalendarPage: React.FC = () => {
           },
         });
 
-        if (paymentError) throw paymentError;
-
         window.location.href = paymentData.init_point;
       } catch (e: any) {
         dismissToast(paymentToast);
         setIsSubmitting(false);
-        let errorMessage = "Ocorreu um erro desconhecido ao iniciar o pagamento.";
-        if (e.message) {
-          errorMessage = e.message;
-        } else if (e.context && e.context.error) {
-          errorMessage = e.context.error;
+        let errorMessage = e.message || "Ocorreu um erro desconhecido.";
+
+        if (e.context) {
+          try {
+            const errorBody = JSON.parse(e.context);
+            if (errorBody.error) {
+              errorMessage = errorBody.error;
+            }
+          } catch (err) {
+            // Not a JSON response, maybe plain text.
+            // The default message from e.message is probably fine.
+          }
         }
+        
         showError("Erro ao iniciar pagamento: " + errorMessage);
       }
     } else {
