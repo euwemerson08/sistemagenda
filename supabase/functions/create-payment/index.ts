@@ -15,14 +15,19 @@ serve(async (req) => {
 
   try {
     if (!MERCADO_PAGO_ACCESS_TOKEN) {
-      throw new Error("O token de acesso do Mercado Pago não está configurado.");
+      console.error("MERCADO_PAGO_ACCESS_TOKEN is not configured.");
+      return new Response(JSON.stringify({ error: "O token de acesso do Mercado Pago não está configurado. Por favor, configure a variável de ambiente MERCADO_PAGO_ACCESS_TOKEN." }), {
+        status: 401, // Unauthorized
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     const { appointmentId, services, clientName, clientEmail, origin } = await req.json();
 
     if (!appointmentId || !services || !clientName || !clientEmail || !origin) {
-      return new Response(JSON.stringify({ error: "Faltam campos obrigatórios." }), {
-        status: 400,
+      console.error("Missing required fields for payment creation.");
+      return new Response(JSON.stringify({ error: "Faltam campos obrigatórios para criar o pagamento." }), {
+        status: 400, // Bad Request
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -67,7 +72,10 @@ serve(async (req) => {
 
     if (!response.ok) {
       console.error("Erro na API do Mercado Pago:", data);
-      throw new Error(data.message || "Falha ao criar preferência de pagamento.");
+      return new Response(JSON.stringify({ error: data.message || "Falha ao criar preferência de pagamento no Mercado Pago." }), {
+        status: response.status, // Use the status code from Mercado Pago API
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     const paymentId = data.id;
@@ -79,8 +87,11 @@ serve(async (req) => {
       .eq('id', appointmentId);
 
     if (updateError) {
-      console.error("Erro ao atualizar agendamento:", updateError);
-      throw new Error("Falha ao atualizar agendamento com o ID do pagamento.");
+      console.error("Erro ao atualizar agendamento com ID do pagamento:", updateError);
+      return new Response(JSON.stringify({ error: "Falha ao atualizar agendamento com o ID do pagamento." }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     return new Response(JSON.stringify({ init_point: initPoint }), {
@@ -88,8 +99,8 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error(error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error("Erro inesperado na função create-payment:", error);
+    return new Response(JSON.stringify({ error: error.message || "Ocorreu um erro interno no servidor." }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
