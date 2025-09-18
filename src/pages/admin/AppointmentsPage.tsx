@@ -45,7 +45,7 @@ export default function AppointmentsPage() {
     const { data, error } = await supabase
       .from("appointments")
       .select("*")
-      .order("appointment_date", { ascending: false });
+      .order("appointment_date", { ascending: true }); // Alterado para ordem crescente
 
     if (error) {
       toast.error("Erro ao carregar agendamentos: " + error.message);
