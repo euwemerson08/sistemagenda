@@ -12,12 +12,30 @@ import {
 import { Button } from "@/components/ui/button";
 import { CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
+interface Service {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  duration: number | null;
+}
+
+interface ConfirmedAppointmentDetails {
+  date: Date;
+  time: string;
+  employeeName: string;
+  services: Service[];
+}
 
 interface AppointmentSuccessDialogProps {
   isOpen: boolean;
   onClose: () => void;
   whatsapp: string | null;
   address: string | null;
+  appointmentDetails: ConfirmedAppointmentDetails | null; // Novo prop
 }
 
 const AppointmentSuccessDialog: React.FC<AppointmentSuccessDialogProps> = ({
@@ -25,6 +43,7 @@ const AppointmentSuccessDialog: React.FC<AppointmentSuccessDialogProps> = ({
   onClose,
   whatsapp,
   address,
+  appointmentDetails,
 }) => {
   const formattedWhatsapp = whatsapp ? whatsapp.replace(/\D/g, '') : '';
   const whatsappLink = formattedWhatsapp ? `https://wa.me/${formattedWhatsapp}` : '#';
@@ -40,6 +59,26 @@ const AppointmentSuccessDialog: React.FC<AppointmentSuccessDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-3">
+          {appointmentDetails && (
+            <div className="space-y-2 text-left p-3 bg-muted rounded-md">
+              <p className="text-base font-semibold">Detalhes do Agendamento:</p>
+              <p>
+                <span className="font-medium">Data:</span>{" "}
+                {format(appointmentDetails.date, "dd/MM/yyyy", { locale: ptBR })}
+              </p>
+              <p>
+                <span className="font-medium">Hora:</span> {appointmentDetails.time}
+              </p>
+              <p>
+                <span className="font-medium">Profissional:</span> {appointmentDetails.employeeName}
+              </p>
+              <p>
+                <span className="font-medium">Serviços:</span>{" "}
+                {appointmentDetails.services.map(s => s.name).join(", ")}
+              </p>
+            </div>
+          )}
+
           {whatsapp && (
             <p className="text-lg">
               Entre em contato:{" "}

@@ -9,8 +9,9 @@ import { Separator } from "@/components/ui/separator";
 import { showError, showSuccess, showLoading, dismissToast } from "@/utils/toast";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { ptBR } from "date-fns/locale"; // Importar locale para formatação
 import { Skeleton } from "@/components/ui/skeleton";
-import AppointmentSuccessDialog from "@/components/AppointmentSuccessDialog"; // Importar o novo diálogo
+import AppointmentSuccessDialog from "@/components/AppointmentSuccessDialog";
 
 interface Service {
   id: string;
@@ -20,9 +21,21 @@ interface Service {
   duration: number | null;
 }
 
+interface Employee {
+  id: string;
+  name: string;
+}
+
 interface StoreSettings {
   whatsapp: string | null;
   address: string | null;
+}
+
+interface ConfirmedAppointmentDetails {
+  date: Date;
+  time: string;
+  employeeName: string;
+  services: Service[];
 }
 
 const CalendarPage: React.FC = () => {
@@ -41,8 +54,10 @@ const CalendarPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [isLoadingSlots, setIsLoadingSlots] = useState(true);
-  const [showSuccessDialog, setShowSuccessDialog] = useState(false); // Estado para controlar o diálogo
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [storeSettings, setStoreSettings] = useState<StoreSettings>({ whatsapp: null, address: null });
+  const [allEmployees, setAllEmployees] = useState<Employee[]>([]); // Novo estado para todos os funcionários
+  const [confirmedAppointmentDetails, setConfirmedAppointmentDetails] = useState<ConfirmedAppointmentDetails | null>(null); // Novo estado para detalhes do agendamento confirmado
 
   const totalDuration = useMemo(() => {
     return selectedServices?.reduce((sum, service) => sum + (service.duration || 0), 0) || 0;
@@ -50,6 +65,14 @@ const CalendarPage: React.FC = () => {
 
   useEffect(() => {
     const fetchInitialData = async () => {
+      // Fetch all employees
+      const { data: employeesData, error: employeesError } = await supabase.from("employees").select("id, name");
+      if (employeesError) {
+        console.error("Erro ao carregar funcionários:", employeesError.message);
+      } else {
+        setAllEmployees(employeesData);
+      }
+
       // Fetch available slots
       if (date && selectedEmployeeId && totalDuration > 0) {
         setIsLoadingSlots(true);
@@ -123,19 +146,14 @@ const CalendarPage: React.FC = () => {
     if (error) {
       showError("Erro ao criar agendamento: " + error.message);
     } else if (newAppointment) {
-      // Em vez de navegar para a página de pagamento, mostre o diálogo de sucesso
+      const employeeName = allEmployees.find(emp => emp.id === selectedEmployeeId)?.name || "Profissional Desconhecido";
+      setConfirmedAppointmentDetails({
+        date: date,
+        time: selectedTime,
+        employeeName: employeeName,
+        services: selectedServices,
+      });
       setShowSuccessDialog(true);
-      // showSuccess("Agendamento criado com sucesso! Redirecionando para o pagamento...");
-      // navigate("/payment", {
-      //   state: {
-      //     appointmentId: newAppointment.id,
-      //     clientName,
-      //     clientWhatsapp,
-      //     selectedServices,
-      //     totalAmount,
-      //     selectedEmployeeId,
-      //   },
-      // });
     } else {
       showError("Erro desconhecido ao criar agendamento.");
     }
@@ -228,6 +246,7 @@ const CalendarPage: React.FC = () => {
         onClose={handleCloseSuccessDialog}
         whatsapp={storeSettings.whatsapp}
         address={storeSettings.address}
+        appointmentDetails={confirmedAppointmentDetails}
       />
     </div>
   );
