@@ -11,24 +11,45 @@ import { Calendar } from "@/components/ui/calendar";
 import { toast } from "sonner";
 import { format, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar as CalendarIcon, X } from "lucide-react";
+import { Calendar as CalendarIcon, X, Pencil, Trash } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AppointmentFormDialog } from "@/components/admin/AppointmentFormDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Service {
   id: string;
   name: string;
   price: number;
+  duration: number | null; // Adicionado duration para o diálogo
+}
+
+interface Employee {
+  id: string;
+  name: string;
 }
 
 interface Appointment {
   id: string;
   client_name: string;
   client_whatsapp: string;
-  appointment_date: string;
-  services: Service[];
+  appointment_date: string; // ISO string
+  services: { id: string; name: string; price: number; duration: number | null }[];
   total_amount: number;
   created_at: string;
-  status: string; // Adicionado o campo status
+  status: string;
+  employee_id: string;
+  employee: { name: string } | null; // Para exibir o nome do funcionário
+  payment_status: string;
+  payment_id: string | null;
 }
 
 // Função auxiliar para determinar a variante do Badge com base no status
@@ -49,27 +70,51 @@ const getStatusBadgeVariant = (status: string) => {
 
 export default function AppointmentsPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [allServices, setAllServices] = useState<Service[]>([]);
+  const [allEmployees, setAllEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [clientNameFilter, setClientNameFilter] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
 
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
+
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [appointmentToDelete, setAppointmentToDelete] = useState<string | null>(null);
+
   useEffect(() => {
-    fetchAppointments();
+    fetchInitialData();
   }, []);
 
-  const fetchAppointments = async () => {
+  const fetchInitialData = async () => {
     setLoading(true);
+    await Promise.all([fetchAppointments(), fetchServices(), fetchEmployees()]);
+    setLoading(false);
+  };
+
+  const fetchServices = async () => {
+    const { data, error } = await supabase.from("services").select("id, name, price, duration");
+    if (error) toast.error("Erro ao carregar serviços: " + error.message);
+    else setAllServices(data || []);
+  };
+
+  const fetchEmployees = async () => {
+    const { data, error } = await supabase.from("employees").select("id, name");
+    if (error) toast.error("Erro ao carregar funcionários: " + error.message);
+    else setAllEmployees(data || []);
+  };
+
+  const fetchAppointments = async () => {
     const { data, error } = await supabase
       .from("appointments")
-      .select("*, employee:employees(name)") // Seleciona o nome do funcionário
+      .select("*, employee:employees(name)")
       .order("appointment_date", { ascending: true });
 
     if (error) {
       toast.error("Erro ao carregar agendamentos: " + error.message);
     } else {
-      setAppointments(data);
+      setAppointments(data as Appointment[]);
     }
-    setLoading(false);
   };
 
   const filteredAppointments = useMemo(() => {
@@ -91,6 +136,30 @@ export default function AppointmentsPage() {
   const clearFilters = () => {
     setClientNameFilter("");
     setSelectedDate(undefined);
+  };
+
+  const handleEditClick = (appointment: Appointment) => {
+    setEditingAppointment(appointment);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleDeleteClick = (appointmentId: string) => {
+    setAppointmentToDelete(appointmentId);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (appointmentToDelete) {
+      const { error } = await supabase.from("appointments").delete().eq("id", appointmentToDelete);
+      if (error) {
+        toast.error("Erro ao deletar agendamento: " + error.message);
+      } else {
+        toast.success("Agendamento deletado com sucesso!");
+        fetchAppointments();
+      }
+      setAppointmentToDelete(null);
+      setIsDeleteDialogOpen(false);
+    }
   };
 
   if (loading) {
@@ -143,16 +212,18 @@ export default function AppointmentsPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Cliente</TableHead>
+              <TableHead>Profissional</TableHead>
               <TableHead>Data e Hora</TableHead>
               <TableHead>Serviços</TableHead>
-              <TableHead>Status</TableHead> {/* Nova coluna para Status */}
+              <TableHead>Status</TableHead>
               <TableHead className="text-right">Valor Total</TableHead>
+              <TableHead className="text-right">Ações</TableHead> {/* Nova coluna para ações */}
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredAppointments.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center"> {/* Colspan ajustado */}
+                <TableCell colSpan={7} className="h-24 text-center">
                   Nenhum agendamento encontrado com os filtros aplicados.
                 </TableCell>
               </TableRow>
@@ -163,6 +234,7 @@ export default function AppointmentsPage() {
                     <div>{appointment.client_name}</div>
                     <div className="text-sm text-muted-foreground">{appointment.client_whatsapp}</div>
                   </TableCell>
+                  <TableCell>{appointment.employee?.name || "N/A"}</TableCell>
                   <TableCell>
                     {format(new Date(appointment.appointment_date), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                   </TableCell>
@@ -179,9 +251,17 @@ export default function AppointmentsPage() {
                     <Badge variant={getStatusBadgeVariant(appointment.status)}>
                       {appointment.status}
                     </Badge>
-                  </TableCell> {/* Exibição do Status com Badge */}
+                  </TableCell>
                   <TableCell className="text-right">
                     R$ {Number(appointment.total_amount).toFixed(2)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="icon" onClick={() => handleEditClick(appointment)}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(appointment.id)}>
+                      <Trash className="h-4 w-4" />
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))
@@ -189,6 +269,32 @@ export default function AppointmentsPage() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Diálogo de Edição */}
+      <AppointmentFormDialog
+        isOpen={isEditDialogOpen}
+        onClose={() => setIsEditDialogOpen(false)}
+        initialData={editingAppointment}
+        allServices={allServices}
+        allEmployees={allEmployees}
+        onSave={fetchAppointments}
+      />
+
+      {/* Diálogo de Confirmação de Exclusão */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. Isso excluirá permanentemente este agendamento.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>Excluir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
