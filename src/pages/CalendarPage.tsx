@@ -91,10 +91,22 @@ const CalendarPage: React.FC = () => {
           showError("Erro ao buscar horários disponíveis.");
           console.error(error);
         } else {
-          const formattedSlots = data.map((slot: { available_slot: string }) => 
-            slot.available_slot.substring(0, 5)
-          );
-          setAvailableSlots(formattedSlots);
+          const now = new Date();
+          const today = format(now, "yyyy-MM-dd");
+          const isToday = formattedDate === today;
+
+          const filteredAndFormattedSlots = data
+            .map((slot: { available_slot: string }) => slot.available_slot.substring(0, 5))
+            .filter((timeSlot: string) => {
+              if (isToday) {
+                const [slotHours, slotMinutes] = timeSlot.split(':').map(Number);
+                const slotDateTime = new Date(date);
+                slotDateTime.setHours(slotHours, slotMinutes, 0, 0);
+                return slotDateTime > now; // Apenas horários futuros para o dia de hoje
+              }
+              return true; // Todos os horários disponíveis para dias futuros
+            });
+          setAvailableSlots(filteredAndFormattedSlots);
         }
         setIsLoadingSlots(false);
       }
