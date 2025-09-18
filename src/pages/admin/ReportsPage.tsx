@@ -135,7 +135,7 @@ export default function ReportsPage() {
   const handleClearFilters = () => {
     setStartDate("");
     setEndDate("");
-    setSelectedEmployeeId(null);
+    setSelectedEmployeeId(null); // Define como null para "Todos os funcionários"
     setDisplayedStartDate(null);
     setDisplayedEndDate(null);
     setDisplayedEmployeeId(null);
@@ -236,14 +236,14 @@ export default function ReportsPage() {
             <div>
               <Label htmlFor="employee-filter">Funcionário</Label>
               <Select
-                onValueChange={setSelectedEmployeeId}
-                value={selectedEmployeeId || ""}
+                onValueChange={(value) => setSelectedEmployeeId(value === "all" ? null : value)}
+                value={selectedEmployeeId || "all"} // Define o valor do Select para "all" quando selectedEmployeeId for null
               >
                 <SelectTrigger id="employee-filter">
                   <SelectValue placeholder="Todos os funcionários" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os funcionários</SelectItem>
+                  <SelectItem value="all">Todos os funcionários</SelectItem> {/* Valor "all" */}
                   {allEmployees.map(emp => (
                     <SelectItem key={emp.id} value={emp.id}>{emp.name}</SelectItem>
                   ))}
