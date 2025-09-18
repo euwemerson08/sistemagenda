@@ -48,6 +48,8 @@ interface Appointment {
   total_amount: number;
   employee_id: string;
   status: string;
+  payment_status: string; // Adicionado
+  payment_id: string | null; // Adicionado
 }
 
 const appointmentFormSchema = z.object({
