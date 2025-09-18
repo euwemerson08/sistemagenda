@@ -28,7 +28,24 @@ interface Appointment {
   services: Service[];
   total_amount: number;
   created_at: string;
+  status: string; // Adicionado o campo status
 }
+
+// Função auxiliar para determinar a variante do Badge com base no status
+const getStatusBadgeVariant = (status: string) => {
+  switch (status) {
+    case "Confirmado":
+      return "default"; // Geralmente azul escuro
+    case "Pendente":
+      return "secondary"; // Geralmente cinza claro
+    case "Cancelado":
+      return "destructive"; // Vermelho
+    case "Concluído":
+      return "outline"; // Borda
+    default:
+      return "secondary";
+  }
+};
 
 export default function AppointmentsPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -44,8 +61,8 @@ export default function AppointmentsPage() {
     setLoading(true);
     const { data, error } = await supabase
       .from("appointments")
-      .select("*")
-      .order("appointment_date", { ascending: true }); // Alterado para ordem crescente
+      .select("*, employee:employees(name)") // Seleciona o nome do funcionário
+      .order("appointment_date", { ascending: true });
 
     if (error) {
       toast.error("Erro ao carregar agendamentos: " + error.message);
@@ -128,13 +145,14 @@ export default function AppointmentsPage() {
               <TableHead>Cliente</TableHead>
               <TableHead>Data e Hora</TableHead>
               <TableHead>Serviços</TableHead>
+              <TableHead>Status</TableHead> {/* Nova coluna para Status */}
               <TableHead className="text-right">Valor Total</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredAppointments.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="h-24 text-center">
+                <TableCell colSpan={5} className="h-24 text-center"> {/* Colspan ajustado */}
                   Nenhum agendamento encontrado com os filtros aplicados.
                 </TableCell>
               </TableRow>
@@ -157,6 +175,11 @@ export default function AppointmentsPage() {
                       ))}
                     </div>
                   </TableCell>
+                  <TableCell>
+                    <Badge variant={getStatusBadgeVariant(appointment.status)}>
+                      {appointment.status}
+                    </Badge>
+                  </TableCell> {/* Exibição do Status com Badge */}
                   <TableCell className="text-right">
                     R$ {Number(appointment.total_amount).toFixed(2)}
                   </TableCell>
