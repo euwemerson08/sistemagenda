@@ -7,6 +7,7 @@ import * as z from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import {
   Form,
@@ -17,44 +18,36 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
-// Esquema para a primeira etapa (Nome e WhatsApp)
-const nameWhatsappSchema = z.object({
+const signUpSchema = z.object({
   name: z.string().min(1, "O nome é obrigatório."),
   whatsapp: z.string().min(10, "O WhatsApp parece inválido."),
+  email: z.string().email("Email inválido."),
+  password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres."),
 });
 
-// Esquema para a etapa de verificação de OTP
-const otpSchema = z.object({
-  otp: z.string().min(6, "O código OTP deve ter 6 dígitos."),
+const signInSchema = z.object({
+  email: z.string().email("Email inválido."),
+  password: z.string().min(1, "A senha é obrigatória."),
 });
 
 export function CustomerAuthForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [currentStep, setCurrentStep] = useState<'name_whatsapp_entry' | 'otp_verification'>('name_whatsapp_entry');
-  const [prefilledName, setPrefilledName] = useState<string>("");
-  const [prefilledWhatsapp, setPrefilledWhatsapp] = useState<string>("");
-  const [otpSent, setOtpSent] = useState(false);
 
-  // Formulário para a primeira etapa (Nome e WhatsApp)
-  const nameWhatsappForm = useForm<z.infer<typeof nameWhatsappSchema>>({
-    resolver: zodResolver(nameWhatsappSchema),
-    defaultValues: { name: "", whatsapp: "" },
+  const signUpForm = useForm<z.infer<typeof signUpSchema>>({
+    resolver: zodResolver(signUpSchema),
+    defaultValues: { name: "", whatsapp: "", email: "", password: "" },
   });
 
-  // Formulário para a etapa de OTP
-  const otpForm = useForm<z.infer<typeof otpSchema>>({
-    resolver: zodResolver(otpSchema),
-    defaultValues: { otp: "" },
+  const signInForm = useForm<z.infer<typeof signInSchema>>({
+    resolver: zodResolver(signInSchema),
+    defaultValues: { email: "", password: "" },
   });
 
-  // Lida com a submissão da primeira etapa (Nome e WhatsApp) e envia o OTP
-  async function handleNameWhatsappSubmit(values: z.infer<typeof nameWhatsappSchema>) {
+  async function handleSignUp(values: z.infer<typeof signUpSchema>) {
     setIsSubmitting(true);
-    setPrefilledName(values.name);
-    setPrefilledWhatsapp(values.whatsapp);
-
-    const { error } = await supabase.auth.signInWithOtp({
-      phone: values.whatsapp,
+    const { error } = await supabase.auth.signUp({
+      email: values.email,
+      password: values.password,
       options: {
         data: {
           name: values.name,
@@ -63,62 +56,71 @@ export function CustomerAuthForm() {
       },
     });
     setIsSubmitting(false);
-
     if (error) {
-      toast.error("Erro ao enviar código: " + error.message);
+      toast.error(error.message);
     } else {
-      toast.success("Um código de verificação foi enviado para o seu WhatsApp!");
-      setOtpSent(true);
-      setCurrentStep('otp_verification');
+      toast.success("Verifique seu email para confirmar sua conta!");
     }
   }
 
-  // Lida com a verificação do OTP
-  async function handleOtpVerification(values: z.infer<typeof otpSchema>) {
+  async function handleSignIn(values: z.infer<typeof signInSchema>) {
     setIsSubmitting(true);
-    const { error } = await supabase.auth.verifyOtp({
-      phone: prefilledWhatsapp,
-      token: values.otp,
-      type: 'sms',
+    const { error } = await supabase.auth.signInWithPassword({
+      email: values.email,
+      password: values.password,
     });
     setIsSubmitting(false);
-
     if (error) {
-      toast.error("Erro ao verificar código: " + error.message);
-    } else {
-      toast.success("Login realizado com sucesso!");
-      // O usuário será redirecionado automaticamente pelo SessionContextProvider
-    }
-  }
-
-  // Função para reenviar o OTP
-  async function handleResendOtp() {
-    setIsSubmitting(true);
-    const { error } = await supabase.auth.signInWithOtp({
-      phone: prefilledWhatsapp,
-      options: {
-        data: {
-          name: prefilledName,
-          whatsapp: prefilledWhatsapp,
-        },
-      },
-    });
-    setIsSubmitting(false);
-
-    if (error) {
-      toast.error("Erro ao reenviar código: " + error.message);
-    } else {
-      toast.success("Novo código enviado para o seu WhatsApp!");
+      toast.error("Email ou senha inválidos.");
     }
   }
 
   return (
-    <>
-      {currentStep === 'name_whatsapp_entry' && (
-        <Form {...nameWhatsappForm}>
-          <form onSubmit={nameWhatsappForm.handleSubmit(handleNameWhatsappSubmit)} className="space-y-4 mt-4">
+    <Tabs defaultValue="signin" className="w-full">
+      <TabsList className="grid w-full grid-cols-2">
+        <TabsTrigger value="signin">Entrar</TabsTrigger>
+        <TabsTrigger value="signup">Criar Conta</TabsTrigger>
+      </TabsList>
+      <TabsContent value="signin">
+        <Form {...signInForm}>
+          <form onSubmit={signInForm.handleSubmit(handleSignIn)} className="space-y-4 mt-4">
             <FormField
-              control={nameWhatsappForm.control}
+              control={signInForm.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input placeholder="seu@email.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={signInForm.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Senha</FormLabel>
+                  <FormControl>
+                    <Input type="password" placeholder="Sua senha" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? "Entrando..." : "Entrar"}
+            </Button>
+          </form>
+        </Form>
+      </TabsContent>
+      <TabsContent value="signup">
+        <Form {...signUpForm}>
+          <form onSubmit={signUpForm.handleSubmit(handleSignUp)} className="space-y-4 mt-4">
+            <FormField
+              control={signUpForm.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
@@ -131,7 +133,7 @@ export function CustomerAuthForm() {
               )}
             />
             <FormField
-              control={nameWhatsappForm.control}
+              control={signUpForm.control}
               name="whatsapp"
               render={({ field }) => (
                 <FormItem>
@@ -143,41 +145,38 @@ export function CustomerAuthForm() {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "Enviando código..." : "Continuar"}
-            </Button>
-          </form>
-        </Form>
-      )}
-
-      {currentStep === 'otp_verification' && (
-        <Form {...otpForm}>
-          <form onSubmit={otpForm.handleSubmit(handleOtpVerification)} className="space-y-4 mt-4">
-            <p className="text-sm text-gray-600">
-              Um código de 6 dígitos foi enviado para o seu WhatsApp: <span className="font-medium">{prefilledWhatsapp}</span>
-            </p>
             <FormField
-              control={otpForm.control}
-              name="otp"
+              control={signUpForm.control}
+              name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Código de Verificação</FormLabel>
+                  <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="XXXXXX" {...field} />
+                    <Input placeholder="seu@email.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={signUpForm.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Senha</FormLabel>
+                  <FormControl>
+                    <Input type="password" placeholder="Crie uma senha segura" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "Verificando..." : "Verificar Código"}
-            </Button>
-            <Button type="button" variant="link" className="w-full" onClick={handleResendOtp} disabled={isSubmitting}>
-              Reenviar Código
+              {isSubmitting ? "Criando conta..." : "Criar Conta"}
             </Button>
           </form>
         </Form>
-      )}
-    </>
+      </TabsContent>
+    </Tabs>
   );
 }

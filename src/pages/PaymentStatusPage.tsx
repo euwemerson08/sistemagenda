@@ -2,14 +2,14 @@
 
 import React, { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { supabase, stripePublishableKey } from "@/integrations/supabase/client"; // Importar a chave publicável do Stripe
+import { supabase } from "@/integrations/supabase/client";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { showError } from "@/utils/toast";
 import { loadStripe } from "@stripe/stripe-js";
 
-const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null; // Usar a chave publicável do Stripe
+const stripePromise = loadStripe(import.meta.env.VITE_SUPABASE_URL); // A chave publicável do Stripe deve ser usada aqui
 
 export default function PaymentStatusPage() {
   const [searchParams] = useSearchParams();
