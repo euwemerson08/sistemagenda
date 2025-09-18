@@ -11,7 +11,7 @@ import OperatingHoursManagementPage from "./pages/admin/OperatingHoursManagement
 import AppointmentsPage from "./pages/admin/AppointmentsPage";
 import EmployeesManagementPage from "./pages/admin/EmployeesManagementPage";
 import NewAppointmentPage from "./pages/admin/NewAppointmentPage";
-import StoreSettingsPage from "./pages/admin/StoreSettingsPage"; // Importar a nova página
+import StoreSettingsPage from "./pages/admin/StoreSettingsPage";
 import Login from "./pages/Login";
 import PaymentPage from "./pages/PaymentPage";
 import PaymentStatusPage from "./pages/PaymentStatusPage";
@@ -19,6 +19,11 @@ import { SessionContextProvider, useSession } from "./components/SessionContextP
 import { Toaster } from "sonner";
 import React from "react";
 import CustomerProtectedRoute from "./components/CustomerProtectedRoute";
+import { loadStripe } from "@stripe/stripe-js";
+import { stripePublishableKey } from "@/integrations/supabase/client"; // Importar a chave publicável
+
+// Carregar o Stripe fora do componente para evitar recargas desnecessárias
+const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null;
 
 // Componente de rota protegida para Admin
 const AdminProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -58,7 +63,7 @@ function App() {
             <Route path="appointments" element={<AppointmentsPage />} />
             <Route path="employees" element={<EmployeesManagementPage />} />
             <Route path="new-appointment" element={<NewAppointmentPage />} />
-            <Route path="store-settings" element={<StoreSettingsPage />} /> {/* Nova rota */}
+            <Route path="store-settings" element={<StoreSettingsPage />} />
           </Route>
         </Routes>
         <Toaster />
