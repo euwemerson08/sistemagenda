@@ -24,14 +24,14 @@ const nameWhatsappSchema = z.object({
   whatsapp: z.string().min(10, "O WhatsApp parece inválido."),
 });
 
-// Esquemas existentes para Sign Up e Sign In
+// Esquema para Sign Up (sem senha, usará Magic Link)
 const signUpSchema = z.object({
   name: z.string().min(1, "O nome é obrigatório."),
   whatsapp: z.string().min(10, "O WhatsApp parece inválido."),
   email: z.string().email("Email inválido."),
-  password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres."),
 });
 
+// Esquema para Sign In (com senha)
 const signInSchema = z.object({
   email: z.string().email("Email inválido."),
   password: z.string().min(1, "A senha é obrigatória."),
@@ -53,7 +53,7 @@ export function CustomerAuthForm() {
   // Formulário de Sign Up, com valores preenchidos se vier da etapa anterior
   const signUpForm = useForm<z.infer<typeof signUpSchema>>({
     resolver: zodResolver(signUpSchema),
-    defaultValues: { name: prefilledName, whatsapp: prefilledWhatsapp, email: "", password: "" },
+    defaultValues: { name: prefilledName, whatsapp: prefilledWhatsapp, email: "" },
   });
 
   // Formulário de Sign In
@@ -68,7 +68,6 @@ export function CustomerAuthForm() {
       name: prefilledName,
       whatsapp: prefilledWhatsapp,
       email: "", // Mantém o email vazio para novos cadastros
-      password: "",
     });
   }, [prefilledName, prefilledWhatsapp, signUpForm]);
 
@@ -105,13 +104,13 @@ export function CustomerAuthForm() {
     setCurrentStep('auth_tabs'); // Avança para a etapa de abas de autenticação
   }
 
-  // Lida com o cadastro de um novo usuário
+  // Lida com o cadastro de um novo usuário (agora via Magic Link)
   async function handleSignUp(values: z.infer<typeof signUpSchema>) {
     setIsSubmitting(true);
-    const { error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signInWithOtp({
       email: values.email,
-      password: values.password,
       options: {
+        emailRedirectTo: window.location.origin + '/services', // Redireciona para a página de serviços após clicar no link
         data: {
           name: values.name,
           whatsapp: values.whatsapp,
@@ -122,7 +121,7 @@ export function CustomerAuthForm() {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Verifique seu email para confirmar sua conta!");
+      toast.success("Um link mágico foi enviado para o seu email. Clique nele para entrar!");
     }
   }
 
@@ -260,21 +259,8 @@ export function CustomerAuthForm() {
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={signUpForm.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Senha</FormLabel>
-                      <FormControl>
-                        <Input type="password" placeholder="Crie uma senha segura" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
                 <Button type="submit" className="w-full" disabled={isSubmitting}>
-                  {isSubmitting ? "Criando conta..." : "Criar Conta"}
+                  {isSubmitting ? "Enviando link mágico..." : "Criar Conta e Entrar"}
                 </Button>
               </form>
             </Form>
