@@ -10,7 +10,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, MessageCircleMore } from "lucide-react"; // Importar MessageCircleMore para o ícone do WhatsApp
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -80,12 +80,12 @@ const AppointmentSuccessDialog: React.FC<AppointmentSuccessDialogProps> = ({
           )}
 
           {whatsapp && (
-            <p className="text-lg">
-              Entre em contato:{" "}
-              <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-medium">
-                {whatsapp}
+            <Button asChild className="w-full">
+              <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
+                <MessageCircleMore className="mr-2 h-4 w-4" />
+                Falar no WhatsApp
               </a>
-            </p>
+            </Button>
           )}
           {address && (
             <p className="text-lg">
