@@ -10,6 +10,7 @@ import { showError, showSuccess, showLoading, dismissToast } from "@/utils/toast
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
+import AppointmentSuccessDialog from "@/components/AppointmentSuccessDialog"; // Importar o novo diálogo
 
 interface Service {
   id: string;
@@ -17,6 +18,11 @@ interface Service {
   description: string | null;
   price: number;
   duration: number | null;
+}
+
+interface StoreSettings {
+  whatsapp: string | null;
+  address: string | null;
 }
 
 const CalendarPage: React.FC = () => {
@@ -35,14 +41,17 @@ const CalendarPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [isLoadingSlots, setIsLoadingSlots] = useState(true);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false); // Estado para controlar o diálogo
+  const [storeSettings, setStoreSettings] = useState<StoreSettings>({ whatsapp: null, address: null });
 
   const totalDuration = useMemo(() => {
     return selectedServices?.reduce((sum, service) => sum + (service.duration || 0), 0) || 0;
   }, [selectedServices]);
 
   useEffect(() => {
-    if (date && selectedEmployeeId && totalDuration > 0) {
-      const fetchAvailableSlots = async () => {
+    const fetchInitialData = async () => {
+      // Fetch available slots
+      if (date && selectedEmployeeId && totalDuration > 0) {
         setIsLoadingSlots(true);
         setAvailableSlots([]);
         setSelectedTime(null);
@@ -65,10 +74,22 @@ const CalendarPage: React.FC = () => {
           setAvailableSlots(formattedSlots);
         }
         setIsLoadingSlots(false);
-      };
+      }
 
-      fetchAvailableSlots();
-    }
+      // Fetch store settings
+      const { data: settingsData, error: settingsError } = await supabase
+        .from("store_settings")
+        .select("whatsapp, address")
+        .single();
+
+      if (settingsError && settingsError.code !== 'PGRST116') { // PGRST116 means "no rows found"
+        console.error("Erro ao carregar configurações da loja:", settingsError.message);
+      } else if (settingsData) {
+        setStoreSettings(settingsData);
+      }
+    };
+
+    fetchInitialData();
   }, [date, selectedEmployeeId, totalDuration]);
 
   const handleSchedule = async () => {
@@ -91,19 +112,38 @@ const CalendarPage: React.FC = () => {
       services: selectedServices.map(s => ({ id: s.id, name: s.name, price: s.price, duration: s.duration })),
       total_amount: totalAmount,
       employee_id: selectedEmployeeId,
+      payment_status: 'pending',
     };
 
-    const { error } = await supabase.from('appointments').insert([appointmentData]);
+    const { data: newAppointment, error } = await supabase.from('appointments').insert([appointmentData]).select().single();
     
     dismissToast(loadingToast);
     setIsSubmitting(false);
 
     if (error) {
       showError("Erro ao criar agendamento: " + error.message);
+    } else if (newAppointment) {
+      // Em vez de navegar para a página de pagamento, mostre o diálogo de sucesso
+      setShowSuccessDialog(true);
+      // showSuccess("Agendamento criado com sucesso! Redirecionando para o pagamento...");
+      // navigate("/payment", {
+      //   state: {
+      //     appointmentId: newAppointment.id,
+      //     clientName,
+      //     clientWhatsapp,
+      //     selectedServices,
+      //     totalAmount,
+      //     selectedEmployeeId,
+      //   },
+      // });
     } else {
-      showSuccess(`Agendamento para ${format(date, "dd/MM/yyyy")} às ${selectedTime} confirmado!`);
-      navigate("/");
+      showError("Erro desconhecido ao criar agendamento.");
     }
+  };
+
+  const handleCloseSuccessDialog = () => {
+    setShowSuccessDialog(false);
+    navigate("/"); // Redireciona para a página inicial após fechar o diálogo
   };
 
   return (
@@ -182,6 +222,13 @@ const CalendarPage: React.FC = () => {
           Voltar para seleção de serviços
         </Link>
       </div>
+
+      <AppointmentSuccessDialog
+        isOpen={showSuccessDialog}
+        onClose={handleCloseSuccessDialog}
+        whatsapp={storeSettings.whatsapp}
+        address={storeSettings.address}
+      />
     </div>
   );
 };

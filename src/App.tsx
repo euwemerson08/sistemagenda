@@ -11,7 +11,10 @@ import OperatingHoursManagementPage from "./pages/admin/OperatingHoursManagement
 import AppointmentsPage from "./pages/admin/AppointmentsPage";
 import EmployeesManagementPage from "./pages/admin/EmployeesManagementPage";
 import NewAppointmentPage from "./pages/admin/NewAppointmentPage";
+import StoreSettingsPage from "./pages/admin/StoreSettingsPage"; // Importar a nova página
 import Login from "./pages/Login";
+import PaymentPage from "./pages/PaymentPage";
+import PaymentStatusPage from "./pages/PaymentStatusPage";
 import { SessionContextProvider, useSession } from "./components/SessionContextProvider";
 import { Toaster } from "sonner";
 import React from "react";
@@ -44,6 +47,8 @@ function App() {
           {/* Customer Protected Routes */}
           <Route path="/services" element={<CustomerProtectedRoute><ServiceSelectionPage /></CustomerProtectedRoute>} />
           <Route path="/calendar" element={<CustomerProtectedRoute><CalendarPage /></CustomerProtectedRoute>} />
+          <Route path="/payment" element={<CustomerProtectedRoute><PaymentPage /></CustomerProtectedRoute>} />
+          <Route path="/payment-status" element={<CustomerProtectedRoute><PaymentStatusPage /></CustomerProtectedRoute>} />
 
           {/* Admin Protected Routes */}
           <Route path="/admin" element={<AdminProtectedRoute><AdminLayout /></AdminProtectedRoute>}>
@@ -53,6 +58,7 @@ function App() {
             <Route path="appointments" element={<AppointmentsPage />} />
             <Route path="employees" element={<EmployeesManagementPage />} />
             <Route path="new-appointment" element={<NewAppointmentPage />} />
+            <Route path="store-settings" element={<StoreSettingsPage />} /> {/* Nova rota */}
           </Route>
         </Routes>
         <Toaster />
