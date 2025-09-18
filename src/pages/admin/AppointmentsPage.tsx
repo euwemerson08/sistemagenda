@@ -59,6 +59,8 @@ const getStatusBadgeVariant = (status: string) => {
       return "default"; // Geralmente azul escuro
     case "Pendente":
       return "secondary"; // Geralmente cinza claro
+    case "Em Atendimento": // Novo status
+      return "default"; // Ou outra variante que desejar, como "success" se houvesse
     case "Cancelado":
       return "destructive"; // Vermelho
     case "Concluído":
