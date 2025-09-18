@@ -6,23 +6,12 @@ import { CalendarDays, DollarSign, Users, ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 export default function ReportsPage() {
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
-  const [showFilterDialog, setShowFilterDialog] = useState(false);
   const [displayedStartDate, setDisplayedStartDate] = useState<string | null>(null);
   const [displayedEndDate, setDisplayedEndDate] = useState<string | null>(null);
 
@@ -33,7 +22,8 @@ export default function ReportsPage() {
     }
     setDisplayedStartDate(startDate);
     setDisplayedEndDate(endDate);
-    setShowFilterDialog(true);
+    // Aqui você faria a lógica real para buscar os dados do relatório
+    // Por enquanto, apenas atualizamos as datas exibidas.
   };
 
   const formatDisplayDate = (dateString: string | null) => {
@@ -45,6 +35,8 @@ export default function ReportsPage() {
       return dateString;
     }
   };
+
+  const isReportGenerated = displayedStartDate && displayedEndDate;
 
   return (
     <div className="container mx-auto p-4">
@@ -123,42 +115,27 @@ export default function ReportsPage() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Relatório Detalhado (Exemplo)</CardTitle>
-          <CardDescription>Visão geral dos agendamentos no período selecionado.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">
-            Aqui você poderá ver tabelas, gráficos e outros dados detalhados dos seus relatórios.
-          </p>
-          {/* Placeholder para um gráfico ou tabela */}
-          <div className="h-48 bg-muted rounded-md flex items-center justify-center mt-4">
-            <p className="text-muted-foreground">Gráfico/Tabela de Dados</p>
-          </div>
-        </CardContent>
-      </Card>
-
-      <AlertDialog open={showFilterDialog} onOpenChange={setShowFilterDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Filtros Selecionados</AlertDialogTitle>
-            <AlertDialogDescription>
-              Você selecionou o seguinte período para o relatório:
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="py-4">
-            <p><strong>Data de Início:</strong> {formatDisplayDate(displayedStartDate)}</p>
-            <p><strong>Data de Fim:</strong> {formatDisplayDate(displayedEndDate)}</p>
-          </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Fechar</AlertDialogCancel>
-            <AlertDialogAction onClick={() => alert("Gerando relatório com estas datas...")}>
-              Confirmar e Gerar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {isReportGenerated && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Relatório Detalhado</CardTitle>
+            <CardDescription>
+              Visão geral dos agendamentos de{" "}
+              <span className="font-medium">{formatDisplayDate(displayedStartDate)}</span> a{" "}
+              <span className="font-medium">{formatDisplayDate(displayedEndDate)}</span>.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground">
+              Aqui você poderá ver tabelas, gráficos e outros dados detalhados dos seus relatórios.
+            </p>
+            {/* Placeholder para um gráfico ou tabela */}
+            <div className="h-48 bg-muted rounded-md flex items-center justify-center mt-4">
+              <p className="text-muted-foreground">Gráfico/Tabela de Dados para o período selecionado</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
