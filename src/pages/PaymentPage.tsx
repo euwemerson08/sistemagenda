@@ -13,9 +13,10 @@ import {
   Elements,
 } from "@stripe/react-stripe-js";
 import { loadStripe, StripeElementsOptions } from "@stripe/stripe-js";
+import { stripePublishableKey } from "@/integrations/supabase/client"; // Importar a chave publicável
 
-// Certifique-se de que sua chave publicável do Stripe está no .env
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+// Carregar o Stripe condicionalmente fora do componente
+const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null;
 
 interface Service {
   id: string;
@@ -111,6 +112,16 @@ export default function PaymentPage() {
   const { appointmentId, clientName, clientWhatsapp, selectedServices, totalAmount, selectedEmployeeId } = (location.state || {}) as PaymentPageProps;
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Adiciona uma verificação para a chave publicável do Stripe
+  if (!stripePublishableKey) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-red-500 p-4 text-center">
+        Erro: A chave publicável do Stripe (VITE_STRIPE_PUBLISHABLE_KEY) não está configurada.
+        Por favor, defina esta variável de ambiente.
+      </div>
+    );
+  }
 
   useEffect(() => {
     if (!appointmentId || !totalAmount) {
