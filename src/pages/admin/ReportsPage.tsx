@@ -48,6 +48,8 @@ const getStatusBadgeVariant = (status: string) => {
       return "default";
     case "Pendente":
       return "secondary";
+    case "Em Atendimento":
+      return "default";
     case "Cancelado":
       return "destructive";
     case "Concluído":
@@ -237,13 +239,13 @@ export default function ReportsPage() {
               <Label htmlFor="employee-filter">Funcionário</Label>
               <Select
                 onValueChange={(value) => setSelectedEmployeeId(value === "all" ? null : value)}
-                value={selectedEmployeeId || "all"} // Define o valor do Select para "all" quando selectedEmployeeId for null
+                value={selectedEmployeeId || "all"}
               >
                 <SelectTrigger id="employee-filter">
                   <SelectValue placeholder="Todos os funcionários" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos os funcionários</SelectItem> {/* Valor "all" */}
+                  <SelectItem value="all">Todos os funcionários</SelectItem>
                   {allEmployees.map(emp => (
                     <SelectItem key={emp.id} value={emp.id}>{emp.name}</SelectItem>
                   ))}

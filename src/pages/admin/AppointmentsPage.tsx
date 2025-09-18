@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { toast } from "sonner";
-import { format, isSameDay, addMinutes, parseISO } from "date-fns"; // Adicionado parseISO e addMinutes
+import { format, isSameDay, addMinutes, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Calendar as CalendarIcon, X, Pencil, Trash } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -29,7 +29,7 @@ interface Service {
   id: string;
   name: string;
   price: number;
-  duration: number | null; // Adicionado duration para o diálogo
+  duration: number | null;
 }
 
 interface Employee {
@@ -56,15 +56,15 @@ interface Appointment {
 const getStatusBadgeVariant = (status: string) => {
   switch (status) {
     case "Confirmado":
-      return "default"; // Geralmente azul escuro
+      return "default"; 
     case "Pendente":
-      return "secondary"; // Geralmente cinza claro
-    case "Em Atendimento": // Novo status
-      return "default"; // Ou outra variante que desejar, como "success" se houvesse
+      return "secondary";
+    case "Em Atendimento":
+      return "default"; 
     case "Cancelado":
-      return "destructive"; // Vermelho
+      return "destructive";
     case "Concluído":
-      return "outline"; // Borda
+      return "outline";
     default:
       return "secondary";
   }
@@ -226,7 +226,7 @@ export default function AppointmentsPage() {
               <TableHead>Serviços</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Valor Total</TableHead>
-              <TableHead className="text-right">Ações</TableHead> {/* Nova coluna para ações */}
+              <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -279,7 +279,6 @@ export default function AppointmentsPage() {
         </Table>
       </div>
 
-      {/* Diálogo de Edição */}
       <AppointmentFormDialog
         isOpen={isEditDialogOpen}
         onClose={() => setIsEditDialogOpen(false)}
@@ -289,7 +288,6 @@ export default function AppointmentsPage() {
         onSave={fetchAppointments}
       />
 
-      {/* Diálogo de Confirmação de Exclusão */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
