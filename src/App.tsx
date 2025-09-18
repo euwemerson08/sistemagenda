@@ -12,6 +12,7 @@ import AppointmentsPage from "./pages/admin/AppointmentsPage";
 import EmployeesManagementPage from "./pages/admin/EmployeesManagementPage";
 import NewAppointmentPage from "./pages/admin/NewAppointmentPage";
 import StoreSettingsPage from "./pages/admin/StoreSettingsPage";
+import ReportsPage from "./pages/admin/ReportsPage"; // Importar a nova página de relatórios
 import Login from "./pages/Login";
 import PaymentPage from "./pages/PaymentPage";
 import PaymentStatusPage from "./pages/PaymentStatusPage";
@@ -64,6 +65,7 @@ function App() {
             <Route path="employees" element={<EmployeesManagementPage />} />
             <Route path="new-appointment" element={<NewAppointmentPage />} />
             <Route path="store-settings" element={<StoreSettingsPage />} />
+            <Route path="reports" element={<ReportsPage />} /> {/* Nova rota para relatórios */}
           </Route>
         </Routes>
         <Toaster />

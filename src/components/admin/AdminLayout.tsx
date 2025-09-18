@@ -13,7 +13,8 @@ import {
   Users,
   Clock,
   PlusCircle,
-  Settings, // Importar o ícone de configurações
+  Settings,
+  BarChart2, // Importar o ícone de relatórios
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -30,7 +31,8 @@ const AdminLayout: React.FC = () => {
     { name: "Serviços", path: "/admin/services", icon: ClipboardList },
     { name: "Funcionários", path: "/admin/employees", icon: Users },
     { name: "Horários de Funcionamento", path: "/admin/operating-hours", icon: Clock },
-    { name: "Configurações da Loja", path: "/admin/store-settings", icon: Settings }, // Novo link
+    { name: "Configurações da Loja", path: "/admin/store-settings", icon: Settings },
+    { name: "Relatórios", path: "/admin/reports", icon: BarChart2 }, // Novo link para relatórios
   ];
 
   const handleLogout = async () => {
