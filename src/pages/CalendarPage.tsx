@@ -10,7 +10,6 @@ import { showError, showSuccess, showLoading, dismissToast } from "@/utils/toast
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useSession } from "@/components/SessionContextProvider";
 
 interface Service {
   id: string;
@@ -31,39 +30,15 @@ const CalendarPage: React.FC = () => {
     selectedEmployeeId?: string;
   };
 
-  const { user } = useSession();
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [isLoadingSlots, setIsLoadingSlots] = useState(true);
-  const [isPaymentEnabled, setIsPaymentEnabled] = useState(false);
-  const [isLoadingSettings, setIsLoadingSettings] = useState(true);
 
   const totalDuration = useMemo(() => {
     return selectedServices?.reduce((sum, service) => sum + (service.duration || 0), 0) || 0;
   }, [selectedServices]);
-
-  useEffect(() => {
-    const fetchPaymentSettings = async () => {
-      setIsLoadingSettings(true);
-      const { data, error } = await supabase
-        .from("payment_settings")
-        .select("settings")
-        .eq("provider", "mercadopago")
-        .single();
-
-      if (data?.settings) {
-        const settings = data.settings as { enabled: boolean };
-        setIsPaymentEnabled(settings.enabled);
-      } else if (error && error.code !== 'PGRST116') {
-        showError("Erro ao carregar configurações de pagamento.");
-      }
-      setIsLoadingSettings(false);
-    };
-
-    fetchPaymentSettings();
-  }, []);
 
   useEffect(() => {
     if (date && selectedEmployeeId && totalDuration > 0) {
@@ -97,12 +72,12 @@ const CalendarPage: React.FC = () => {
   }, [date, selectedEmployeeId, totalDuration]);
 
   const handleSchedule = async () => {
-    if (!date || !selectedTime || !selectedServices || !selectedEmployeeId || !user) {
+    if (!date || !selectedTime || !selectedServices || !selectedEmployeeId) {
       showError("Por favor, preencha todos os campos para agendar.");
       return;
     }
 
-    const loadingToast = showLoading("Criando agendamento...");
+    const loadingToast = showLoading("Confirmando agendamento...");
     setIsSubmitting(true);
 
     const [hours, minutes] = selectedTime.split(':').map(Number);
@@ -118,65 +93,14 @@ const CalendarPage: React.FC = () => {
       employee_id: selectedEmployeeId,
     };
 
-    const { data: newAppointment, error } = await supabase
-      .from('appointments')
-      .insert([appointmentData])
-      .select('id')
-      .single();
+    const { error } = await supabase.from('appointments').insert([appointmentData]);
+    
+    dismissToast(loadingToast);
+    setIsSubmitting(false);
 
-    if (error || !newAppointment) {
-      dismissToast(loadingToast);
-      setIsSubmitting(false);
-      showError("Erro ao criar agendamento: " + error?.message);
-      return;
-    }
-
-    if (isPaymentEnabled) {
-      dismissToast(loadingToast);
-      const paymentToast = showLoading("Redirecionando para o pagamento...");
-
-      try {
-        const { data: paymentResponse, error: invokeError } = await supabase.functions.invoke('create-payment', {
-          body: {
-            appointmentId: newAppointment.id,
-            services: selectedServices.map(s => ({ name: s.name, price: s.price })),
-            clientName,
-            clientEmail: user.email,
-            origin: window.location.origin,
-          },
-        });
-
-        if (invokeError) {
-          throw new Error(invokeError.message || invokeError.context || "Erro desconhecido ao invocar função de pagamento.");
-        }
-
-        if (!paymentResponse || !paymentResponse.init_point) {
-          throw new Error("Resposta de pagamento inválida: init_point não encontrado.");
-        }
-
-        window.location.href = paymentResponse.init_point;
-      } catch (e: any) {
-        dismissToast(paymentToast);
-        setIsSubmitting(false);
-        let errorMessage = e.message || "Ocorreu um erro desconhecido.";
-
-        if (e.context) {
-          try {
-            const errorBody = JSON.parse(e.context);
-            if (errorBody.error) {
-              errorMessage = errorBody.error;
-            }
-          } catch (err) {
-            // Not a JSON response, maybe plain text.
-            // The default message from e.message is probably fine.
-          }
-        }
-        
-        showError("Erro ao iniciar pagamento: " + errorMessage);
-      }
+    if (error) {
+      showError("Erro ao criar agendamento: " + error.message);
     } else {
-      dismissToast(loadingToast);
-      setIsSubmitting(false);
       showSuccess(`Agendamento para ${format(date, "dd/MM/yyyy")} às ${selectedTime} confirmado!`);
       navigate("/");
     }
@@ -210,7 +134,7 @@ const CalendarPage: React.FC = () => {
             <div className="mb-6">
               <h3 className="text-lg font-semibold mb-3">Selecione o Horário</h3>
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-48 overflow-y-auto pr-2">
-                {isLoadingSlots || isLoadingSettings ? (
+                {isLoadingSlots ? (
                   Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)
                 ) : availableSlots.length > 0 ? (
                   availableSlots.map((time) => (
@@ -246,7 +170,7 @@ const CalendarPage: React.FC = () => {
               <span className="text-xl font-bold">Total:</span>
               <span className="text-xl font-bold text-primary">R$ {totalAmount?.toFixed(2) || "0.00"}</span>
             </div>
-            <Button onClick={handleSchedule} disabled={isSubmitting || !selectedTime || isLoadingSettings} className="w-full mt-6 text-lg py-3">
+            <Button onClick={handleSchedule} disabled={isSubmitting || !selectedTime} className="w-full mt-6 text-lg py-3">
               {isSubmitting ? "Confirmando..." : "Confirmar Agendamento"}
             </Button>
           </CardContent>

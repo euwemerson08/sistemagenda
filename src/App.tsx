@@ -16,10 +16,6 @@ import { SessionContextProvider, useSession } from "./components/SessionContextP
 import { Toaster } from "sonner";
 import React from "react";
 import CustomerProtectedRoute from "./components/CustomerProtectedRoute";
-import UpdatePasswordPage from "./pages/UpdatePasswordPage";
-import PaymentSettingsPage from "./pages/admin/PaymentSettingsPage";
-import PaymentSuccessPage from "./pages/PaymentSuccessPage";
-import PaymentFailurePage from "./pages/PaymentFailurePage";
 
 // Componente de rota protegida para Admin
 const AdminProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -44,13 +40,10 @@ function App() {
           {/* Public Routes */}
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/update-password" element={<UpdatePasswordPage />} />
 
           {/* Customer Protected Routes */}
           <Route path="/services" element={<CustomerProtectedRoute><ServiceSelectionPage /></CustomerProtectedRoute>} />
           <Route path="/calendar" element={<CustomerProtectedRoute><CalendarPage /></CustomerProtectedRoute>} />
-          <Route path="/payment-success" element={<CustomerProtectedRoute><PaymentSuccessPage /></CustomerProtectedRoute>} />
-          <Route path="/payment-failure" element={<CustomerProtectedRoute><PaymentFailurePage /></CustomerProtectedRoute>} />
 
           {/* Admin Protected Routes */}
           <Route path="/admin" element={<AdminProtectedRoute><AdminLayout /></AdminProtectedRoute>}>
@@ -60,7 +53,6 @@ function App() {
             <Route path="appointments" element={<AppointmentsPage />} />
             <Route path="employees" element={<EmployeesManagementPage />} />
             <Route path="new-appointment" element={<NewAppointmentPage />} />
-            <Route path="payment-settings" element={<PaymentSettingsPage />} />
           </Route>
         </Routes>
         <Toaster />
