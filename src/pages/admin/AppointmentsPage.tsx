@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { toast } from "sonner";
-import { format, isSameDay } from "date-fns";
+import { format, isSameDay, addMinutes, parseISO } from "date-fns"; // Adicionado parseISO e addMinutes
 import { ptBR } from "date-fns/locale";
 import { Calendar as CalendarIcon, X, Pencil, Trash } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -118,15 +118,22 @@ export default function AppointmentsPage() {
   };
 
   const filteredAppointments = useMemo(() => {
+    const now = new Date();
     return appointments.filter((appointment) => {
-      const appointmentDate = new Date(appointment.appointment_date);
+      const appointmentDateTime = parseISO(appointment.appointment_date);
+      const tenMinutesAfterAppointment = addMinutes(appointmentDateTime, 10);
+
+      // Esconder agendamentos que já passaram há mais de 10 minutos
+      if (tenMinutesAfterAppointment < now) {
+        return false;
+      }
       
       const nameMatch = clientNameFilter
         ? appointment.client_name.toLowerCase().includes(clientNameFilter.toLowerCase())
         : true;
         
       const dateMatch = selectedDate
-        ? isSameDay(appointmentDate, selectedDate)
+        ? isSameDay(appointmentDateTime, selectedDate)
         : true;
         
       return nameMatch && dateMatch;
