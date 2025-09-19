@@ -5,6 +5,9 @@ import path from "path";
 
 export default defineConfig(() => ({
   base: '/vite_react_shadcn_ts/', // Adicionado o caminho base para GitHub Pages
+  build: { // Adiciona a configuração de build
+    outDir: 'docs', // Define a pasta de saída para 'docs'
+  },
   server: {
     host: "::",
     port: 8080,
