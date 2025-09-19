@@ -83,7 +83,7 @@ const AppointmentSuccessDialog: React.FC<AppointmentSuccessDialogProps> = ({
 
           <div className="flex flex-col gap-2"> {/* Usar flex-col para empilhar botões */}
             {whatsapp && (
-              <Button asChild className="w-full">
+              <Button asChild className="w-full bg-whatsapp hover:bg-whatsapp/90 text-whatsapp-foreground">
                 <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
                   <MessageCircleMore className="mr-2 h-4 w-4" />
                   Falar no WhatsApp

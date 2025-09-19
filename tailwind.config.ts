@@ -66,6 +66,10 @@ export default {
           DEFAULT: "hsl(var(--instagram))",
           foreground: "hsl(0 0% 100%)", // Cor do texto para contraste
         },
+        whatsapp: { // Adicionando a cor do WhatsApp
+          DEFAULT: "hsl(var(--whatsapp))",
+          foreground: "hsl(0 0% 100%)", // Cor do texto para contraste
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

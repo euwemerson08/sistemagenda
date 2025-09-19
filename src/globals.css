@@ -51,6 +51,7 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
 
     --instagram: 339 80% 53%; /* Cor base do Instagram (um rosa avermelhado) */
+    --whatsapp: 135 80% 47%; /* Cor do WhatsApp: #12df54 convertido para HSL */
   }
 
   .dark {
@@ -91,6 +92,7 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
 
     --instagram: 339 80% 53%; /* Cor base do Instagram (um rosa avermelhado) */
+    --whatsapp: 135 80% 47%; /* Cor do WhatsApp: #12df54 convertido para HSL */
   }
 }
 
