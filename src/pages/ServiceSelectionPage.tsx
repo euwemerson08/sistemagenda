@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import ServiceCard from "@/components/ServiceCard";
+import EmployeeCard from "@/components/EmployeeCard"; // Importar o novo componente
 import { Button } from "@/components/ui/button";
 import { showError } from "@/utils/toast";
 import { Separator } from "@/components/ui/separator";
@@ -10,7 +11,6 @@ import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { useSession } from "@/components/SessionContextProvider";
 
@@ -118,6 +118,10 @@ const ServiceSelectionPage: React.FC = () => {
     });
   };
 
+  const handleEmployeeSelect = (employeeId: string) => {
+    setSelectedEmployeeId(employeeId);
+  };
+
   const filteredServices = useMemo(() => {
     if (!searchTerm) return servicesForSelectedEmployee;
     const lowerCaseSearchTerm = searchTerm.toLowerCase();
@@ -168,19 +172,27 @@ const ServiceSelectionPage: React.FC = () => {
         </div>
       )}
 
-      <div className="my-6 max-w-md mx-auto">
-        <Label htmlFor="employee-select" className="text-lg font-semibold mb-2 block text-center">Selecione o Profissional</Label>
+      <div className="my-6">
+        <Label className="text-lg font-semibold mb-4 block text-center">Selecione o Profissional</Label>
         {loadingInitialData ? (
-          <Skeleton className="h-10 w-full" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Array.from({ length: 3 }).map((_, index) => <Skeleton key={index} className="h-24 w-full" />)}
+          </div>
         ) : (
-          <Select onValueChange={setSelectedEmployeeId} value={selectedEmployeeId || undefined}>
-            <SelectTrigger id="employee-select">
-              <SelectValue placeholder={allEmployees.length > 0 ? "Escolha um profissional" : "Nenhum profissional disponível"} />
-            </SelectTrigger>
-            <SelectContent>
-              {allEmployees.map(emp => <SelectItem key={emp.id} value={emp.id}>{emp.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {allEmployees.length === 0 ? (
+              <p className="col-span-full text-center text-muted-foreground">Nenhum profissional disponível.</p>
+            ) : (
+              allEmployees.map((employee) => (
+                <EmployeeCard
+                  key={employee.id}
+                  employee={employee}
+                  isSelected={selectedEmployeeId === employee.id}
+                  onSelect={handleEmployeeSelect}
+                />
+              ))
+            )}
+          </div>
         )}
       </div>
 
