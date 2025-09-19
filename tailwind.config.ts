@@ -76,6 +76,9 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      backgroundImage: { // Adicionando a imagem de fundo personalizada
+        'instagram-gradient': "url('/instagram-gradient.jpg')",
+      },
       keyframes: {
         "accordion-down": {
           from: {

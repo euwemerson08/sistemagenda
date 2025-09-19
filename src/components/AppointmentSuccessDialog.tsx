@@ -91,7 +91,7 @@ const AppointmentSuccessDialog: React.FC<AppointmentSuccessDialogProps> = ({
               </Button>
             )}
             {instagramUrl && ( // Renderizar botão do Instagram se o URL existir
-              <Button asChild className="w-full bg-instagram hover:bg-instagram/90 text-instagram-foreground">
+              <Button asChild className="w-full bg-instagram-gradient bg-cover bg-center text-white">
                 <a href={instagramUrl} target="_blank" rel="noopener noreferrer">
                   <Instagram className="mr-2 h-4 w-4" />
                   Nosso Instagram
