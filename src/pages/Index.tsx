@@ -1,6 +1,6 @@
 "use client";
 
-import { MadeWithDyad } from "@/components/made-with-dyad";
+import MadeWithDyad from "@/components/made-with-dyad"; // Corrigido para importação padrão
 import { useSession } from "@/components/SessionContextProvider";
 import { Navigate, Link } from "react-router-dom";
 import { CustomerAuthForm } from "@/components/auth/CustomerAuthForm";
