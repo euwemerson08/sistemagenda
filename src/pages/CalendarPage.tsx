@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { showError, showSuccess, showLoading, dismissToast } from "@/utils/toast";
 import { supabase } from "@/integrations/supabase/client";
-import { format } from "date-fns";
+import { format, addMinutes } from "date-fns"; // Importar addMinutes
 import { ptBR } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
 import AppointmentSuccessDialog from "@/components/AppointmentSuccessDialog";
@@ -94,6 +94,7 @@ const CalendarPage: React.FC = () => {
           const now = new Date();
           const today = format(now, "yyyy-MM-dd");
           const isToday = formattedDate === today;
+          const tenMinutesFromNow = addMinutes(now, 10); // Adiciona 10 minutos ao horário atual
 
           const filteredAndFormattedSlots = data
             .map((slot: { available_slot: string }) => slot.available_slot.substring(0, 5))
@@ -102,7 +103,7 @@ const CalendarPage: React.FC = () => {
                 const [slotHours, slotMinutes] = timeSlot.split(':').map(Number);
                 const slotDateTime = new Date(date);
                 slotDateTime.setHours(slotHours, slotMinutes, 0, 0);
-                return slotDateTime > now;
+                return slotDateTime > tenMinutesFromNow; // Compara com 10 minutos a partir de agora
               }
               return true;
             });

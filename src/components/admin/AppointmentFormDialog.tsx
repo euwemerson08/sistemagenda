@@ -23,7 +23,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { toast } from "sonner";
 import { Check, ChevronsUpDown, Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, addMinutes } from "date-fns"; // Importar addMinutes
 import { ptBR } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -148,10 +148,23 @@ export const AppointmentFormDialog: React.FC<AppointmentFormDialogProps> = ({
           toast.error("Erro ao buscar horários disponíveis: " + error.message);
           console.error(error);
         } else {
-          const formatted = data.map((slot: { available_slot: string }) => 
-            slot.available_slot.substring(0, 5)
-          );
-          setAvailableSlots(formatted);
+          const now = new Date();
+          const today = format(now, "yyyy-MM-dd");
+          const isToday = formattedDate === today;
+          const tenMinutesFromNow = addMinutes(now, 10); // Adiciona 10 minutos ao horário atual
+
+          const filteredAndFormattedSlots = data
+            .map((slot: { available_slot: string }) => slot.available_slot.substring(0, 5))
+            .filter((timeSlot: string) => {
+              if (isToday) {
+                const [slotHours, slotMinutes] = timeSlot.split(':').map(Number);
+                const slotDateTime = new Date(watchedDate);
+                slotDateTime.setHours(slotHours, slotMinutes, 0, 0);
+                return slotDateTime > tenMinutesFromNow; // Compara com 10 minutos a partir de agora
+              }
+              return true;
+            });
+          setAvailableSlots(filteredAndFormattedSlots);
         }
         setIsLoadingSlots(false);
       } else {
