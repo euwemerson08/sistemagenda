@@ -48,8 +48,6 @@ interface Appointment {
   status: string;
   employee_id: string;
   employee: { name: string } | null; // Para exibir o nome do funcionário
-  payment_status: string;
-  payment_id: string | null;
 }
 
 // Função auxiliar para determinar a variante do Badge com base no status

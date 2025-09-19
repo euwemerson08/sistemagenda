@@ -48,8 +48,6 @@ interface Appointment {
   total_amount: number;
   employee_id: string;
   status: string;
-  payment_status: string; // Adicionado
-  payment_id: string | null; // Adicionado
 }
 
 const appointmentFormSchema = z.object({
@@ -136,7 +134,7 @@ export const AppointmentFormDialog: React.FC<AppointmentFormDialogProps> = ({
       if (watchedDate && watchedSelectedEmployeeId && totalDuration > 0) {
         setIsLoadingSlots(true);
         setAvailableSlots([]);
-        setValue("selectedTime", ""); // Clear selected time when date/employee/services change
+        setValue("selectedTime", "");
 
         const formattedDate = format(watchedDate, "yyyy-MM-dd");
 
@@ -190,8 +188,6 @@ export const AppointmentFormDialog: React.FC<AppointmentFormDialogProps> = ({
       total_amount: totalAmount,
       employee_id: values.selectedEmployeeId,
       status: values.status,
-      payment_status: initialData?.payment_status || 'pending', // Keep existing payment status or default
-      payment_id: initialData?.payment_id || null, // Keep existing payment ID or null
     };
 
     let error = null;

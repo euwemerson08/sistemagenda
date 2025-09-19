@@ -12,19 +12,12 @@ import AppointmentsPage from "./pages/admin/AppointmentsPage";
 import EmployeesManagementPage from "./pages/admin/EmployeesManagementPage";
 import NewAppointmentPage from "./pages/admin/NewAppointmentPage";
 import StoreSettingsPage from "./pages/admin/StoreSettingsPage";
-import ReportsPage from "./pages/admin/ReportsPage"; // Importar a nova página de relatórios
+import ReportsPage from "./pages/admin/ReportsPage";
 import Login from "./pages/Login";
-import PaymentPage from "./pages/PaymentPage";
-import PaymentStatusPage from "./pages/PaymentStatusPage";
 import { SessionContextProvider, useSession } from "./components/SessionContextProvider";
 import { Toaster } from "sonner";
 import React from "react";
 import CustomerProtectedRoute from "./components/CustomerProtectedRoute";
-import { loadStripe } from "@stripe/stripe-js";
-import { stripePublishableKey } from "@/integrations/supabase/client"; // Importar a chave publicável
-
-// Carregar o Stripe fora do componente para evitar recargas desnecessárias
-const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null;
 
 // Componente de rota protegida para Admin
 const AdminProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -53,8 +46,7 @@ function App() {
           {/* Customer Protected Routes */}
           <Route path="/services" element={<CustomerProtectedRoute><ServiceSelectionPage /></CustomerProtectedRoute>} />
           <Route path="/calendar" element={<CustomerProtectedRoute><CalendarPage /></CustomerProtectedRoute>} />
-          <Route path="/payment" element={<CustomerProtectedRoute><PaymentPage /></CustomerProtectedRoute>} />
-          <Route path="/payment-status" element={<CustomerProtectedRoute><PaymentStatusPage /></CustomerProtectedRoute>} />
+          {/* Rotas de pagamento removidas */}
 
           {/* Admin Protected Routes */}
           <Route path="/admin" element={<AdminProtectedRoute><AdminLayout /></AdminProtectedRoute>}>
@@ -65,7 +57,7 @@ function App() {
             <Route path="employees" element={<EmployeesManagementPage />} />
             <Route path="new-appointment" element={<NewAppointmentPage />} />
             <Route path="store-settings" element={<StoreSettingsPage />} />
-            <Route path="reports" element={<ReportsPage />} /> {/* Nova rota para relatórios */}
+            <Route path="reports" element={<ReportsPage />} />
           </Route>
         </Routes>
         <Toaster />

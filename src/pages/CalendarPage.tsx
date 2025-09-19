@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { showError, showSuccess, showLoading, dismissToast } from "@/utils/toast";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale"; // Importar locale para formatação
+import { ptBR } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
 import AppointmentSuccessDialog from "@/components/AppointmentSuccessDialog";
 
@@ -56,8 +56,8 @@ const CalendarPage: React.FC = () => {
   const [isLoadingSlots, setIsLoadingSlots] = useState(true);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [storeSettings, setStoreSettings] = useState<StoreSettings>({ whatsapp: null, address: null });
-  const [allEmployees, setAllEmployees] = useState<Employee[]>([]); // Novo estado para todos os funcionários
-  const [confirmedAppointmentDetails, setConfirmedAppointmentDetails] = useState<ConfirmedAppointmentDetails | null>(null); // Novo estado para detalhes do agendamento confirmado
+  const [allEmployees, setAllEmployees] = useState<Employee[]>([]);
+  const [confirmedAppointmentDetails, setConfirmedAppointmentDetails] = useState<ConfirmedAppointmentDetails | null>(null);
 
   const totalDuration = useMemo(() => {
     return selectedServices?.reduce((sum, service) => sum + (service.duration || 0), 0) || 0;
@@ -102,9 +102,9 @@ const CalendarPage: React.FC = () => {
                 const [slotHours, slotMinutes] = timeSlot.split(':').map(Number);
                 const slotDateTime = new Date(date);
                 slotDateTime.setHours(slotHours, slotMinutes, 0, 0);
-                return slotDateTime > now; // Apenas horários futuros para o dia de hoje
+                return slotDateTime > now;
               }
-              return true; // Todos os horários disponíveis para dias futuros
+              return true;
             });
           setAvailableSlots(filteredAndFormattedSlots);
         }
@@ -117,7 +117,7 @@ const CalendarPage: React.FC = () => {
         .select("whatsapp, address")
         .single();
 
-      if (settingsError && settingsError.code !== 'PGRST116') { // PGRST116 means "no rows found"
+      if (settingsError && settingsError.code !== 'PGRST116') {
         console.error("Erro ao carregar configurações da loja:", settingsError.message);
       } else if (settingsData) {
         setStoreSettings(settingsData);
@@ -147,7 +147,7 @@ const CalendarPage: React.FC = () => {
       services: selectedServices.map(s => ({ id: s.id, name: s.name, price: s.price, duration: s.duration })),
       total_amount: totalAmount,
       employee_id: selectedEmployeeId,
-      payment_status: 'pending',
+      status: 'Pendente', // Status padrão, sem pagamento
     };
 
     const { data: newAppointment, error } = await supabase.from('appointments').insert([appointmentData]).select().single();
@@ -173,7 +173,7 @@ const CalendarPage: React.FC = () => {
 
   const handleCloseSuccessDialog = () => {
     setShowSuccessDialog(false);
-    navigate("/"); // Redireciona para a página inicial após fechar o diálogo
+    navigate("/");
   };
 
   return (
