@@ -4,6 +4,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
 export default defineConfig(() => ({
+  base: '/vite_react_shadcn_ts/', // Adicionado o caminho base para GitHub Pages
   server: {
     host: "::",
     port: 8080,

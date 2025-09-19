@@ -36,7 +36,7 @@ const AdminProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children
 
 function App() {
   return (
-    <Router>
+    <Router basename="/vite_react_shadcn_ts"> {/* Adicionado basename para GitHub Pages */}
       <SessionContextProvider>
         <Routes>
           {/* Public Routes */}
