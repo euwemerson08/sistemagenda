@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { useSession } from "@/components/SessionContextProvider";
+import { ChevronsUpDown } from "lucide-react"; // Importar o ícone
 
 interface Service {
   id: string;
@@ -42,7 +43,7 @@ const ServiceSelectionPage: React.FC = () => {
   const [servicesForSelectedEmployee, setServicesForSelectedEmployee] = useState<Service[]>([]);
   const [loadingInitialData, setLoadingInitialData] = useState(true);
   const [loadingServices, setLoadingServices] = useState(false);
-  const [selectedServiceIds, setSelectedServiceIds] = useState<Set<string>>(new Set());
+  const [selectedServiceIds, setSelectedServiceIds] = new Set<string>(); // Alterado para Set
   const [searchTerm, setSearchTerm] = useState<string>("");
 
   // Fetch initial data: user profile and all employees
@@ -174,8 +175,9 @@ const ServiceSelectionPage: React.FC = () => {
           <Skeleton className="h-10 w-full" />
         ) : (
           <Select onValueChange={setSelectedEmployeeId} value={selectedEmployeeId || undefined}>
-            <SelectTrigger id="employee-select">
+            <SelectTrigger id="employee-select" className="justify-between"> {/* Adicionado justify-between */}
               <SelectValue placeholder={allEmployees.length > 0 ? "Escolha um profissional" : "Nenhum profissional disponível"} />
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" /> {/* Ícone adicionado aqui */}
             </SelectTrigger>
             <SelectContent>
               {allEmployees.map(emp => <SelectItem key={emp.id} value={emp.id}>{emp.name}</SelectItem>)}
