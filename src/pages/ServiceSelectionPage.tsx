@@ -222,11 +222,9 @@ const ServiceSelectionPage: React.FC = () => {
 
       <Separator className="my-8" />
 
-      <div className="bg-card p-6 rounded-lg shadow-md">
-        <h2 className="text-2xl font-semibold mb-4">Resumo da Seleção</h2>
-        {selectedServices.length === 0 ? (
-          <p className="text-muted-foreground">Nenhum serviço selecionado.</p>
-        ) : (
+      {selectedServices.length > 0 && ( // Renderiza esta seção apenas se houver serviços selecionados
+        <div className="bg-card p-6 rounded-lg shadow-md">
+          <h2 className="text-2xl font-semibold mb-4">Resumo da Seleção</h2>
           <ul className="space-y-2 mb-4">
             {selectedServices.map((service) => (
               <li key={service.id} className="flex justify-between items-center">
@@ -235,15 +233,15 @@ const ServiceSelectionPage: React.FC = () => {
               </li>
             ))}
           </ul>
-        )}
-        <div className="flex justify-between items-center border-t pt-4 mt-4">
-          <span className="text-xl font-bold">Total:</span>
-          <span className="text-xl font-bold text-primary">R$ {totalAmount.toFixed(2)}</span>
+          <div className="flex justify-between items-center border-t pt-4 mt-4">
+            <span className="text-xl font-bold">Total:</span>
+            <span className="text-xl font-bold text-primary">R$ {totalAmount.toFixed(2)}</span>
+          </div>
+          <Button onClick={handleContinue} className="w-full mt-6 text-lg py-3" disabled={!selectedEmployeeId || selectedServices.length === 0}>
+            Agendar Horário
+          </Button>
         </div>
-        <Button onClick={handleContinue} className="w-full mt-6 text-lg py-3" disabled={!selectedEmployeeId || selectedServices.length === 0}>
-          Agendar Horário
-        </Button>
-      </div>
+      )}
       <div className="text-center mt-8">
         <Button variant="link" onClick={handleLogout} className="text-sm text-blue-500">
           Sair
