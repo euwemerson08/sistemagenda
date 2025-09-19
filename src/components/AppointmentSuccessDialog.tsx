@@ -10,7 +10,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, MessageCircleMore } from "lucide-react"; // Importar MessageCircleMore para o ícone do WhatsApp
+import { CheckCircle, MessageCircleMore, Instagram } from "lucide-react"; // Importar Instagram
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -35,6 +35,7 @@ interface AppointmentSuccessDialogProps {
   onClose: () => void;
   whatsapp: string | null;
   address: string | null;
+  instagramUrl: string | null; // Novo prop para Instagram
   appointmentDetails: ConfirmedAppointmentDetails | null; // Novo prop
 }
 
@@ -43,6 +44,7 @@ const AppointmentSuccessDialog: React.FC<AppointmentSuccessDialogProps> = ({
   onClose,
   whatsapp,
   address,
+  instagramUrl, // Receber instagramUrl
   appointmentDetails,
 }) => {
   const formattedWhatsapp = whatsapp ? whatsapp.replace(/\D/g, '') : '';
@@ -79,20 +81,31 @@ const AppointmentSuccessDialog: React.FC<AppointmentSuccessDialogProps> = ({
             </div>
           )}
 
-          {whatsapp && (
-            <Button asChild className="w-full">
-              <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
-                <MessageCircleMore className="mr-2 h-4 w-4" />
-                Falar no WhatsApp
-              </a>
-            </Button>
-          )}
+          <div className="flex flex-col gap-2"> {/* Usar flex-col para empilhar botões */}
+            {whatsapp && (
+              <Button asChild className="w-full">
+                <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
+                  <MessageCircleMore className="mr-2 h-4 w-4" />
+                  Falar no WhatsApp
+                </a>
+              </Button>
+            )}
+            {instagramUrl && ( // Renderizar botão do Instagram se o URL existir
+              <Button asChild className="w-full bg-pink-600 hover:bg-pink-700 text-white">
+                <a href={instagramUrl} target="_blank" rel="noopener noreferrer">
+                  <Instagram className="mr-2 h-4 w-4" />
+                  Nosso Instagram
+                </a>
+              </Button>
+            )}
+          </div>
+
           {address && (
             <p className="text-lg">
               Endereço: <span className="font-medium">{address}</span>
             </p>
           )}
-          {!whatsapp && !address && (
+          {!whatsapp && !instagramUrl && !address && (
             <p className="text-muted-foreground">Nenhuma informação de contato ou endereço disponível.</p>
           )}
         </div>

@@ -14,10 +14,11 @@ interface StoreSettings {
   id?: string;
   whatsapp: string | null;
   address: string | null;
+  instagram_url: string | null; // Adicionado campo para Instagram
 }
 
 export default function StoreSettingsPage() {
-  const [settings, setSettings] = useState<StoreSettings>({ whatsapp: null, address: null });
+  const [settings, setSettings] = useState<StoreSettings>({ whatsapp: null, address: null, instagram_url: null });
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -75,7 +76,7 @@ export default function StoreSettingsPage() {
       <Card className="max-w-lg mx-auto">
         <CardHeader>
           <CardTitle>Informações de Contato e Endereço</CardTitle>
-          <CardDescription>Gerencie o WhatsApp e o endereço que serão exibidos aos clientes.</CardDescription>
+          <CardDescription>Gerencie o WhatsApp, Instagram e o endereço que serão exibidos aos clientes.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
@@ -86,6 +87,16 @@ export default function StoreSettingsPage() {
               value={settings.whatsapp || ""}
               onChange={handleInputChange}
               placeholder="(XX) XXXXX-XXXX"
+            />
+          </div>
+          <div>
+            <Label htmlFor="instagram_url">URL do Instagram</Label>
+            <Input
+              id="instagram_url"
+              name="instagram_url"
+              value={settings.instagram_url || ""}
+              onChange={handleInputChange}
+              placeholder="https://instagram.com/seuperfil"
             />
           </div>
           <div>

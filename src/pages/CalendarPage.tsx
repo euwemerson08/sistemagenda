@@ -29,6 +29,7 @@ interface Employee {
 interface StoreSettings {
   whatsapp: string | null;
   address: string | null;
+  instagram_url: string | null; // Adicionado campo para Instagram
 }
 
 interface ConfirmedAppointmentDetails {
@@ -55,7 +56,7 @@ const CalendarPage: React.FC = () => {
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [isLoadingSlots, setIsLoadingSlots] = useState(true);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
-  const [storeSettings, setStoreSettings] = useState<StoreSettings>({ whatsapp: null, address: null });
+  const [storeSettings, setStoreSettings] = useState<StoreSettings>({ whatsapp: null, address: null, instagram_url: null });
   const [allEmployees, setAllEmployees] = useState<Employee[]>([]);
   const [confirmedAppointmentDetails, setConfirmedAppointmentDetails] = useState<ConfirmedAppointmentDetails | null>(null);
 
@@ -115,7 +116,7 @@ const CalendarPage: React.FC = () => {
       // Fetch store settings
       const { data: settingsData, error: settingsError } = await supabase
         .from("store_settings")
-        .select("whatsapp, address")
+        .select("whatsapp, address, instagram_url") // Buscar instagram_url
         .single();
 
       if (settingsError && settingsError.code !== 'PGRST116') {
@@ -259,6 +260,7 @@ const CalendarPage: React.FC = () => {
         onClose={handleCloseSuccessDialog}
         whatsapp={storeSettings.whatsapp}
         address={storeSettings.address}
+        instagramUrl={storeSettings.instagram_url} // Passar instagramUrl
         appointmentDetails={confirmedAppointmentDetails}
       />
     </div>
