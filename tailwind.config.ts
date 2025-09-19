@@ -62,6 +62,10 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        instagram: { // Adicionando a cor do Instagram
+          DEFAULT: "hsl(var(--instagram))",
+          foreground: "hsl(0 0% 100%)", // Cor do texto para contraste
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
