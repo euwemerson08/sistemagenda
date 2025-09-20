@@ -4,8 +4,8 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
 export default defineConfig(() => ({
-  base: '/vite_react_shadcn_ts/', // Adicionado o caminho base para GitHub Pages
-  build: { // Adiciona a configuração de build
+  base: '/agendeai/', // Corrigido para o nome do seu repositório no GitHub Pages
+  build: {
     outDir: 'docs', // Define a pasta de saída para 'docs'
   },
   server: {
