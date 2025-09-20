@@ -4,7 +4,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
 export default defineConfig(() => ({
-  base: '/agendeai/', // Corrigido para o nome do seu repositório no GitHub Pages
+  base: '/wandering-dragon-swoop/', // Corrigido para o nome do seu repositório no GitHub Pages
   build: {
     outDir: 'docs', // Define a pasta de saída para 'docs'
   },
